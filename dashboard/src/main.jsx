@@ -1,7 +1,6 @@
 import { StrictMode, useState, useEffect, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Landing from './Landing.jsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { capture as captureAttribution } from './lib/attribution'
 import PricingPage from './components/PricingPage'
@@ -112,14 +111,11 @@ function Root() {
     if (hash.startsWith('#/pricing')) return 'pricing';
     if (hash.startsWith('#/login')) return 'login';
     if (hash === '#legal') return 'legal';
-    // The app lives at #app (and #app?tab=… deep links). Everything else,
-    // including a bare / and the section anchors (#features, #pricing…) and
-    // #landing, is the landing page. There is deliberately no "returning
-    // visitor" shortcut into the app: the static fallback is the landing, so
-    // swapping it for the app after hydration made / jump a second after load,
-    // and the logo of every page has to reach the landing.
+    // Landing page is disabled: OpenShorts always loads App directly.
+    // Bare '/', '#landing', '#app', and default fallback all return 'app'.
+    if (hash === '#landing' || !hash || hash === '#' || hash === '#/') return 'app';
     if (hash === '#app' || hash.startsWith('#app?') || hash === '#/app') return 'app';
-    return 'landing';
+    return 'app';
   };
 
   const [view, setView] = useState(resolveView);
@@ -129,11 +125,6 @@ function Root() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-
-  const handleLaunchApp = () => {
-    window.location.hash = '#app';
-    setView('app');
-  };
 
   if (view === 'legal') return <Legal />;
   if (view === 'pricing') return <PricingView />;
@@ -145,7 +136,7 @@ function Root() {
     return <div className="min-h-screen flex items-center justify-center bg-background text-zinc-400">Signing you in…</div>;
   }
   if (view === 'app') return <App />;
-  return <Landing onLaunchApp={handleLaunchApp} />;
+  return <App />;
 }
 
 // Before React mounts: AuthContext rewrites the URL on auth redirects, which
