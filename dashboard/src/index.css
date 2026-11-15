@@ -58,16 +58,19 @@
       var(--color-paper-2);
     border: 1px solid var(--color-rule);
     border-radius: var(--radius-card);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
   }
 
   .card-hover {
     transition: transform var(--dur-short) var(--ease-out),
                 border-color var(--dur-short) var(--ease-out),
-                background-color var(--dur-short) var(--ease-out);
+                background-color var(--dur-short) var(--ease-out),
+                box-shadow var(--dur-short) var(--ease-out);
   }
   .card-hover:hover {
     transform: translateY(-4px);
     border-color: var(--color-rule-2);
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.07), 0 4px 10px -3px rgb(0 0 0 / 0.03);
   }
 
   /* mono UPPERCASE micro label — the only uppercase surface */
@@ -130,7 +133,7 @@
     border-radius: 999px;
     transition: filter var(--dur-short) var(--ease-out);
   }
-  .btn-quiet:hover { filter: brightness(1.15); }
+  .btn-quiet:hover { filter: brightness(0.94); }
 
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm lowercase;
@@ -213,7 +216,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-rule);
+  background: color-mix(in oklab, var(--color-ink) 25%, transparent);
 }
 
 /* Custom Animations */

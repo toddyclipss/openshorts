@@ -242,7 +242,7 @@ export default function ScheduleWeekModal({ isOpen, onClose, clips, jobId, uploa
                         value={time}
                         onChange={(e) => setTime(e.target.value)}
                         disabled={scheduling}
-                        className="input-field [color-scheme:dark]"
+                        className="input-field"
                     />
                 </div>
                 <div>

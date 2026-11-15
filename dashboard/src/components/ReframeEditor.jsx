@@ -139,7 +139,7 @@ export default function ReframeEditor({ jobId, clipIndex, clipTitle, onClose, on
     return (
         /* Bottom sheet on a phone, centred dialog from sm — same shape as the
            shared Modal so the app has one overlay idiom, not two. */
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="card w-full max-w-3xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-b-none sm:rounded-card animate-sheet-up sm:animate-none">
                 <div className="flex items-center justify-between p-4 border-b border-rule">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -288,7 +288,7 @@ function SceneRow({ scene, value, widthFraction, previewUrl, touched, playing,
                 style={{ left: `${leftPct}%`, width: `${widthFraction * 100}%` }}
             >
                 {label && (
-                    <span className="absolute top-1 left-1 text-[10px] px-1 rounded bg-brass text-paper lowercase">
+                    <span className="absolute top-1 left-1 text-[10px] px-1 rounded bg-brass text-brassink lowercase">
                         {label}
                     </span>
                 )}

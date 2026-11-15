@@ -4,7 +4,7 @@ A locked design system for this app (dashboard + landing). Every page redesign
 reads this file before emitting code. Do not regenerate per page — extend or
 amend this file when the system needs to grow.
 
-Theme: **Lumen · Night Foundry** (Hallmark catalog, atmospheric genre).
+Theme: **Lumen · Studio White** (Hallmark catalog, atmospheric/editorial genre).
 Register: premium AI-tool instrument (Modal / Anthropic / ElevenLabs school).
 The product's own numbers — timecodes, aspect ratios, clip counts, costs —
 are the decoration: they render as UPPERCASE mono readouts.
@@ -25,26 +25,26 @@ atmospheric
 - Content pages (Legal): **Long Document** — single column, 65ch measure,
   inline headings, typographic links.
 
-## Theme tokens (Night Foundry)
+## Theme tokens (Studio White)
 
-- `--color-paper`      oklch(13% 0.014 265)   — page canvas, late-night violet
-- `--color-paper-2`    oklch(16.5% 0.015 265) — elevated surface (cards, modals, sidebar)
-- `--color-paper-3`    oklch(20% 0.016 265)   — hover surface / inset chips
-- `--color-ink`        oklch(96% 0.006 262)   — headlines, near-white
-- `--color-ink-2`      oklch(86% 0.01 262)    — body text
-- `--color-muted`      oklch(64% 0.012 262)   — secondary text
-- `--color-rule`       oklch(96% 0.006 262 / 0.08) — hairline borders
-- `--color-rule-2`     oklch(96% 0.006 262 / 0.14) — stronger hairline
-- `--rule-blueprint`   oklch(96% 0.006 262 / 0.04) — blueprint grid lines
-- `--color-accent`     oklch(76% 0.17 50)     — molten brass (THE accent)
-- `--color-accent-ink` oklch(17% 0.03 50)     — text on brass fills
-- `--color-accent-2`   oklch(68% 0.16 18)     — coral chord (verb landmark ONLY + rare secondary)
-- `--color-glow`       oklch(80% 0.16 50 / 0.42) — apparatus halo
-- `--color-paper-emit` oklch(76% 0.17 50 / 0.04) — inner-emission wash
-- `--color-focus`      oklch(76% 0.17 50)     — focus rings
-- `--color-ok`         oklch(75% 0.11 150)    — success states
-- `--color-warn`       oklch(78% 0.14 75)     — warnings (keys missing, low quota)
-- `--color-danger`     oklch(66% 0.18 25)     — errors, destructive
+- `--color-paper`      oklch(100% 0 0)         — page canvas, pure linen white
+- `--color-paper-2`    oklch(98.5% 0.003 260) — elevated surface (cards, modals, sidebar)
+- `--color-paper-3`    oklch(94.5% 0.005 260) — hover surface / inset chips
+- `--color-ink`        oklch(14% 0.008 260)   — headlines, deep carbon
+- `--color-ink-2`      oklch(28% 0.012 260)   — body text, dark charcoal
+- `--color-muted`      oklch(50% 0.015 260)   — secondary text, medium slate
+- `--color-rule`       oklch(14% 0.008 260 / 0.08) — hairline borders
+- `--color-rule-2`     oklch(14% 0.008 260 / 0.14) — stronger hairline
+- `--rule-blueprint`   oklch(14% 0.008 260 / 0.04) — blueprint grid lines
+- `--color-accent`     oklch(55% 0.15 52)     — burnished brass (THE accent)
+- `--color-accent-ink` oklch(100% 0 0)        — text on brass fills (pure white)
+- `--color-accent-2`   oklch(52% 0.19 25)     — coral chord (verb landmark ONLY + rare secondary)
+- `--color-glow`       oklch(55% 0.15 52 / 0.16) — apparatus ambient halo
+- `--color-paper-emit` oklch(55% 0.15 52 / 0.025) — subtle inner-warmth wash
+- `--color-focus`      oklch(55% 0.15 52)     — focus rings
+- `--color-ok`         oklch(50% 0.13 145)    — success states
+- `--color-warn`       oklch(50% 0.14 65)     — warnings (keys missing, low quota)
+- `--color-danger`     oklch(52% 0.20 25)     — errors, destructive
 
 Tailwind names: `paper, paper2, paper3, ink, ink2, muted, brass, brassink,
 coral, ok, warn, danger` (+ legacy aliases `background→paper`, `surface→paper2`,

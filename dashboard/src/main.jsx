@@ -133,7 +133,7 @@ function Root() {
   if (view === 'oauth') return <OAuthConsent />;
   if (view === 'deleted') return <DeletedView />;
   if (view === 'auth') {
-    return <div className="min-h-screen flex items-center justify-center bg-background text-zinc-400">Signing you in…</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-paper text-muted">Signing you in…</div>;
   }
   if (view === 'app') return <App />;
   return <App />;

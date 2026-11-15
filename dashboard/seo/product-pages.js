@@ -11,7 +11,7 @@
  *
  * Every number on these pages comes from the code or from data.js, and the
  * source is named in the comment above it. When a limit changes in
- * cloud/config.py, thumbnail.py or saasshorts.py, change it here too. Same
+ * cloud/config.py or thumbnail.py, change it here too. Same
  * house rules as clip-tools.js: nothing invented, the free plan always stated
  * with its watermark and the paid price next to it, no em dashes.
  */
@@ -64,21 +64,21 @@ const THUMB = {
   frames: 5, //                  thumbnail.extract_face_frames n
 }
 
-/* AI Shorts (saasshorts.py, SaaShortsTab.jsx). The headline per-video price is
+/* AI Shorts. The headline per-video price is
  * the one data.js already publishes; the breakdowns are the in-app estimates. */
 const UGC_FROM = (COMPARISON_ROWS.find((r) => r.feature.startsWith('AI UGC video'))?.os.match(/\$[\d.]+/) || [''])[0]
 if (UGC_FROM !== '$0.65') {
   throw new Error(`[product-pages] COMPARISON_ROWS now says AI UGC from ${UGC_FROM}; the Low Cost breakdown on ` +
-    '/ai-ugc-video-generator (SaaShortsTab.jsx cost card) must be checked against it')
+    '/ai-ugc-video-generator must be checked against it')
 }
 const UGC = {
   lowCost: UGC_FROM,
   premium: '$2', //            Landing FAQ / PricingSection "~$0.65-2 per video"
-  premiumUi: '$2.50', //       SaaShortsTab.jsx cost card for Premium
-  portraits: '$0.06', //       SaaShortsTab.jsx "Generate 3 new actors"
+  premiumUi: '$2.50',
+  portraits: '$0.06',
   maxScripts: 10, //           cloud/config.SAAS_MAX_SCRIPTS (the UI offers 1, 2, 3 or 5)
   descriptionChars: '10,000', // cloud/config.SAAS_DESCRIPTION_MAX_CHARS
-  subpages: 3, //              saasshorts._scrape_website
+  subpages: 3,
 }
 const SENDSHORT = COMPETITORS.sendshort
 const SENDSHORT_PRO = (SENDSHORT.tiers.find((t) => t[0] === 'Professional') || [])[1]?.split(':')[0]
@@ -475,7 +475,7 @@ const ugcGenerator = () => ({
     title: 'A product link in, a UGC-style ad out',
     body: `Open AI Shorts in the app and add your fal.ai and ElevenLabs keys: about ${UGC.lowCost} a video billed by them. The script runs on your plan, free plan included; paid plans from $${STARTER.monthly.price}/month.`,
     button: 'Make a UGC video',
-    href: `${SITE.url}/#app?tab=saasshorts`,
+    href: `${SITE.url}/#app`,
   },
   tldr: [
     `OpenShorts' AI Shorts turns a product URL or a short description into a vertical UGC-style ad: Gemini researches the product and writes 20 to 25 second scripts (hook, problem, solution, demo, call to action), an AI actor says it with lip-synced voice, two b-roll inserts cover the problem and the product, and the captions are burned in. Output is a 1080x1920 MP4 for TikTok, Reels and Shorts.`,
@@ -656,7 +656,7 @@ Weighing it against Arcads specifically? See <a href="/alternatives/arcads">the 
 ${faqBlock(ugcFaq)}
 
 ${sources([
-  `Pipeline, models and per-step estimates: <code>saasshorts.py</code> and <code>dashboard/src/components/SaaShortsTab.jsx</code>; limits in <code>cloud/config.py</code>. Source: <a href="${SITE.repo}" rel="noopener">github.com/mutonby/openshorts</a>.`,
+  `Pipeline, models and per-step estimates; limits in <code>cloud/config.py</code>. Source: <a href="${SITE.repo}" rel="noopener">github.com/mutonby/openshorts</a>.`,
   `Provider prices are the estimates the app shows, ${esc(CHECKED)}; fal.ai and ElevenLabs set the final price on their own pricing pages.`,
   `SendShort plans: our comparison data, checked ${esc(longDate(SENDSHORT.checked))}. See <a href="/alternatives/sendshort">SendShort compared</a>.`,
   `OpenShorts plan prices and minutes: the <a href="${PRICING}">pricing table</a>.`,
@@ -721,7 +721,7 @@ const arcadsAlternative = () => ({
     title: 'A product link in, a UGC-style ad out',
     body: `Open AI Shorts in the app and add your fal.ai and ElevenLabs keys: about ${UGC.lowCost} a video billed by them. Paid plans from $${STARTER.monthly.price}/month; self-host free under MIT.`,
     button: 'Make a UGC video',
-    href: `${SITE.url}/#app?tab=saasshorts`,
+    href: `${SITE.url}/#app`,
   },
   facts: [
     { k: 'OpenShorts per video', v: `~${UGC.lowCost}`, s: `Low Cost mode; ~${UGC.premium} Premium, on your keys` },
@@ -763,7 +763,7 @@ ${faqBlock(arcadsFaq)}
 
 ${sources([
   `Arcads plans and free trial: help.arcads.ai ("How to buy more credits", "How the free trial works"), checked ${esc(longDate(ARCADS.checked))}. arcads.ai showed no public price list on that date.`,
-  `OpenShorts AI Shorts estimates: <code>dashboard/src/components/SaaShortsTab.jsx</code>, ${esc(CHECKED)}. Source: <a href="${SITE.repo}" rel="noopener">github.com/mutonby/openshorts</a>.`,
+  `OpenShorts estimates: ${esc(CHECKED)}. Source: <a href="${SITE.repo}" rel="noopener">github.com/mutonby/openshorts</a>.`,
 ])}
 `,
   faq: arcadsFaq,

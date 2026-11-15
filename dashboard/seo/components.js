@@ -45,7 +45,7 @@ export const COMPONENTS_CSS = `
 .summary{font-size:1.08rem;line-height:1.7;color:var(--ink2);margin:0 0 2rem;max-width:46rem}
 .summary p{margin:0 0 .8rem}
 .summary p:first-child{font-size:1.18rem;color:var(--ink)}
-.demo{margin:1.5rem 0 .6rem;border:1px solid var(--rule2);border-radius:14px;overflow:hidden;background:#0b0b0f}
+.demo{margin:1.5rem 0 .6rem;border:1px solid var(--rule2);border-radius:14px;overflow:hidden;background:var(--paper2)}
 .demo video{width:100%;height:auto;display:block;aspect-ratio:16/9}
 .demo + .calc-note{margin-bottom:1.75rem}
 .calc{background:var(--paper2);border:1px solid var(--rule2);border-radius:14px;padding:1.25rem 1.25rem 1rem;margin:1.5rem 0 1rem}
@@ -55,24 +55,24 @@ export const COMPONENTS_CSS = `
 .calc input[type=range]{width:100%;accent-color:var(--brass)}
 .calc .billing{display:flex;gap:.35rem}
 .calc .billing button{background:transparent;border:1px solid var(--rule2);color:var(--ink2);border-radius:999px;padding:.35rem .85rem;font:inherit;font-size:.85rem;cursor:pointer}
-.calc .billing button[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:oklch(17% 0.03 50)}
+.calc .billing button[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:oklch(100% 0 0)}
 .bars{list-style:none;padding:0;margin:0}
 .bars li{display:grid;grid-template-columns:8.5rem 1fr;gap:.25rem 1rem;align-items:center;padding:.6rem 0;border-top:1px solid var(--rule);margin:0}
 .bars .bt{font-weight:500;color:var(--ink);line-height:1.3}
 .bars .bt small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
 @media(max-width:36rem){.bars li{grid-template-columns:1fr}.bars .bt small{display:inline;margin-left:.4rem}}
 .bars .track{position:relative;height:1.9rem;background:var(--paper);border-radius:6px;overflow:hidden}
-.bars .fill{position:absolute;inset:0 auto 0 0;background:oklch(64% 0.012 262 / .35);border-radius:6px;min-width:2px;transition:width .25s}
+.bars .fill{position:absolute;inset:0 auto 0 0;background:oklch(14% 0.008 260 / .12);border-radius:6px;min-width:2px;transition:width .25s}
 .bars li.us .fill{background:var(--brass)}
 .bars .val{position:absolute;left:.6rem;top:50%;transform:translateY(-50%);font-size:.85rem;color:var(--ink);white-space:nowrap}
-.bars li.us .val{color:oklch(17% 0.03 50);font-weight:600}
+.bars li.us .val{color:oklch(100% 0 0);font-weight:600}
 .bars li.us .val.ext{color:var(--brass)}
 .bars .val.ext{color:var(--ink)}
 .calc-note{font-size:.8rem;color:var(--muted);margin:.75rem 0 0}
 .flow{display:grid;gap:1rem;grid-template-columns:1fr;margin:1.5rem 0}
 @media(min-width:44rem){.flow{grid-template-columns:1fr 1fr}}
 .lane{background:var(--paper2);border:1px solid var(--rule2);border-radius:14px;padding:1.1rem 1.2rem}
-.lane.us{border-color:oklch(76% 0.17 50 / .55)}
+.lane.us{border-color:oklch(55% 0.15 52 / .55)}
 .lane h3{margin:0 0 .8rem;font-family:var(--display);font-weight:400;font-size:1.3rem}
 .lane ol{list-style:none;padding:0;margin:0;counter-reset:s}
 .lane li{position:relative;padding:.55rem 0 .55rem 2.3rem;margin:0;border-top:1px dashed var(--rule2);font-size:.92rem}
@@ -80,12 +80,12 @@ export const COMPONENTS_CSS = `
 .lane li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:.5rem;width:1.6rem;height:1.6rem;border-radius:50%;
   display:grid;place-items:center;font-family:var(--mono);font-size:.72rem;background:var(--paper3);color:var(--ink2)}
 .lane li.you::after{content:"you";font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
-  margin-left:.5rem;padding:.1rem .45rem;border-radius:999px;background:oklch(76% 0.17 50 / .18);color:var(--brass)}
-.lane.us li::before{background:oklch(76% 0.17 50 / .2);color:var(--brass)}
+  margin-left:.5rem;padding:.1rem .45rem;border-radius:999px;background:oklch(55% 0.15 52 / .15);color:var(--brass)}
+.lane.us li::before{background:oklch(55% 0.15 52 / .18);color:var(--brass)}
 .verdict{display:grid;gap:1rem;grid-template-columns:1fr;margin:1.5rem 0}
 @media(min-width:44rem){.verdict{grid-template-columns:1fr 1fr}}
 .verdict div{border:1px solid var(--rule2);border-radius:14px;padding:1.1rem 1.2rem;background:var(--paper2)}
-.verdict .us{border-color:oklch(76% 0.17 50 / .55)}
+.verdict .us{border-color:oklch(55% 0.15 52 / .55)}
 .verdict strong{display:block;font-family:var(--display);font-weight:400;font-size:1.3rem;color:var(--ink);margin-bottom:.6rem}
 .verdict ul{margin:0;padding-left:1.1rem}
 .verdict li{font-size:.92rem}

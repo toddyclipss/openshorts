@@ -172,8 +172,8 @@ export default function HookModal({ isOpen, onClose, onGenerate, onRemove, isPro
                                     >
                                         {s.value === 'pill' ? (
                                             <span className="flex flex-col items-center gap-0.5 py-0.5" style={FONT_CSS[font || styleFont(s.value)]}>
-                                                <span className="rounded-md px-1.5 text-[13px] leading-5 bg-white text-black">Aa Bb</span>
-                                                <span className="rounded-md px-1.5 text-[13px] leading-5 bg-white text-black">Cc</span>
+                                                <span className="rounded-md px-1.5 text-[13px] leading-5 bg-white text-black border border-rule2">Aa Bb</span>
+                                                <span className="rounded-md px-1.5 text-[13px] leading-5 bg-white text-black border border-rule2">Cc</span>
                                             </span>
                                         ) : (
                                             <span

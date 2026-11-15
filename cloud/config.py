@@ -146,7 +146,7 @@ TRIAL_MINUTE_CAP = 20
 THUMBNAIL_MINUTES = 3
 
 # Other managed Gemini calls that upload a video for context (AI effect/filter
-# generation, thumbnail analysis, SaaS-shorts analysis). Cheaper than image gen
+# generation, thumbnail analysis). Cheaper than image gen
 # but not free — meter a small fixed cost so an entitled user can't loop them to
 # burn the operator's managed Gemini budget. Pure-text calls (titles/desc) stay free.
 MANAGED_ANALYSIS_MINUTES = 1
@@ -271,10 +271,6 @@ MAX_PENDING_UPLOADS_PER_USER = _env_int("MAX_PENDING_UPLOADS_PER_USER", 5)
 # OAuth dynamic client registrations per client IP and hour. A client
 # registers once per connection; this only stops one stuck in a loop.
 OAUTH_REGISTRATIONS_PER_HOUR = _env_int("OAUTH_REGISTRATIONS_PER_HOUR", 60)
-
-# SaaSShorts analysis: scripts per request and manual description length.
-SAAS_MAX_SCRIPTS = _env_int("SAAS_MAX_SCRIPTS", 10)
-SAAS_DESCRIPTION_MAX_CHARS = _env_int("SAAS_DESCRIPTION_MAX_CHARS", 10000)
 
 
 class Settings:

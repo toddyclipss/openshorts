@@ -1,4 +1,4 @@
-/* Hallmark · genre: atmospheric · macrostructure: Marquee Hero · theme: lumen (night) · design-system: design.md · designed-as-app · nav: N9 · footer: Ft5 · enrichment: filament apparatus */
+/* Hallmark · genre: atmospheric · macrostructure: Marquee Hero · theme: lumen (studio white) · design-system: design.md · designed-as-app · nav: N9 · footer: Ft5 · enrichment: filament apparatus */
 
 /* ---- hero: blueprint grid + paper emission (top-right) ---- */
 .hero-blueprint {
@@ -55,8 +55,8 @@
   position: absolute;
   inset: 0;
   border-radius: 18px;
-  box-shadow: 0 0 28px 2px var(--color-glow);
-  opacity: 0.4;
+  box-shadow: 0 12px 36px -4px var(--color-glow), 0 0 24px 2px var(--color-glow);
+  opacity: 0.7;
   animation: filament-pulse var(--dur-pulse) var(--ease-out) infinite;
   pointer-events: none;
 }
@@ -84,7 +84,7 @@
   font-size: 10.5px;
   letter-spacing: var(--tracking-micro);
   text-transform: uppercase;
-  color: var(--color-ink-2);
+  color: #ffffff;
   background: rgb(0 0 0 / 0.7);
   padding: 2px 8px;
   border-radius: 999px;

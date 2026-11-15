@@ -836,7 +836,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                     {/* Stays the clip's own number, not its rank: the cards are
                         ordered by score, but this is what the downloaded file
                         is called (clip-N.mp4) and what every api call indexes. */}
-                    <span className="bg-black/70 text-ink font-mono text-micro uppercase px-2 py-1 rounded-full">
+                    <span className="bg-black/70 text-white font-mono text-micro uppercase px-2 py-1 rounded-full">
                         Clip {index + 1}
                     </span>
                     {/* A bare number on a thumbnail reads as a duration, a
@@ -844,19 +844,19 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         its scale, or it is decoration. */}
                     {Number.isFinite(clip.predicted_score) && (
                         <span
-                            className="bg-black/70 font-mono text-micro uppercase px-2 py-1 rounded-full flex items-center gap-1"
+                            className="bg-black/70 text-white font-mono text-micro uppercase px-2 py-1 rounded-full flex items-center gap-1"
                             title="openshorts' prediction of how well this clip will perform, from 0 to 100"
                         >
-                            <TrendingUp size={11} className="shrink-0 text-muted" />
-                            <span className="text-muted">viral</span>
+                            <TrendingUp size={11} className="shrink-0 text-white/60" />
+                            <span className="text-white/60">viral</span>
                             <b className={
                                 clip.predicted_score >= 80 ? 'text-ok'
                                     : clip.predicted_score >= 65 ? 'text-brass'
-                                        : 'text-ink2'
+                                        : 'text-white'
                             }>
                                 {clip.predicted_score}
                             </b>
-                            <span className="text-muted">/100</span>
+                            <span className="text-white/60">/100</span>
                         </span>
                     )}
                 </div>
@@ -865,8 +865,8 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 {isEditing && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 p-4 text-center">
                         <Loader2 size={28} className="text-brass animate-spin mb-3" />
-                        <span className="text-xs text-ink lowercase">ai magic in progress…</span>
-                        <span className="readout mt-1.5">APPLYING VIRAL EDITS · ZOOMS</span>
+                        <span className="text-xs text-white lowercase">ai magic in progress…</span>
+                        <span className="readout text-white/70 mt-1.5">APPLYING VIRAL EDITS · ZOOMS</span>
                     </div>
                 )}
             </div>
@@ -1170,7 +1170,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                                     type="datetime-local"
                                     value={scheduleDate}
                                     onChange={(e) => setScheduleDate(e.target.value)}
-                                    className="input-field [color-scheme:dark]"
+                                    className="input-field"
                                 />
                             </div>
                         )}

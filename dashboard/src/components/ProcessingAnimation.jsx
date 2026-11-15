@@ -91,7 +91,7 @@ const ProcessingAnimation = ({ media, isComplete, syncedTime, isSyncedPlaying, s
 
   const containerClasses = `relative w-full aspect-[2/1] sm:aspect-video rounded-card overflow-hidden bg-black border border-rule2 mb-4 sm:mb-8 group animate-fade transition-all duration-500
     ${isComplete && !isSyncedPlaying ? 'grayscale brightness-50' : ''}
-    ${isSyncedPlaying ? 'ring-2 ring-brass ring-offset-2 ring-offset-black' : ''}`;
+    ${isSyncedPlaying ? 'ring-2 ring-brass ring-offset-2 ring-offset-paper' : ''}`;
 
   const getVideoOpacityClass = () => {
     if (isSyncedPlaying) return 'opacity-100'; // Playing: Full visibility

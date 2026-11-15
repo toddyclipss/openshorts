@@ -23,18 +23,18 @@ import { renderNav, NAV_CSS, NAV_SCRIPT } from './nav.js'
 
 const S = {
   wrap: 'max-width:72rem;margin:0 auto;padding:0 1.5rem',
-  h1: 'font-family:\'Instrument Serif\',ui-serif,Georgia,serif;font-weight:400;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.06;letter-spacing:-.03em;color:oklch(96% 0.006 262);margin:0 0 1.25rem;text-transform:lowercase',
-  h2: 'font-family:\'Instrument Serif\',ui-serif,Georgia,serif;font-weight:400;font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.15;letter-spacing:-.02em;color:oklch(96% 0.006 262);margin:0 0 1rem;text-transform:lowercase',
-  h3: 'font-size:1rem;font-weight:600;color:oklch(96% 0.006 262);margin:0 0 .35rem',
-  p: 'margin:0 0 1rem;color:oklch(86% 0.01 262);line-height:1.65',
-  muted: 'margin:0 0 1rem;color:oklch(64% 0.012 262);line-height:1.65',
+  h1: 'font-family:\'Instrument Serif\',ui-serif,Georgia,serif;font-weight:400;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.06;letter-spacing:-.03em;color:oklch(14% 0.008 260);margin:0 0 1.25rem;text-transform:lowercase',
+  h2: 'font-family:\'Instrument Serif\',ui-serif,Georgia,serif;font-weight:400;font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.15;letter-spacing:-.02em;color:oklch(14% 0.008 260);margin:0 0 1rem;text-transform:lowercase',
+  h3: 'font-size:1rem;font-weight:600;color:oklch(14% 0.008 260);margin:0 0 .35rem',
+  p: 'margin:0 0 1rem;color:oklch(28% 0.012 260);line-height:1.65',
+  muted: 'margin:0 0 1rem;color:oklch(50% 0.015 260);line-height:1.65',
   eyebrow:
-    'font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:oklch(76% 0.17 50);margin:0 0 1rem',
-  section: 'padding:3.5rem 0;border-bottom:1px solid oklch(96% 0.006 262 / .08)',
+    'font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:oklch(55% 0.15 52);margin:0 0 1rem',
+  section: 'padding:3.5rem 0;border-bottom:1px solid oklch(14% 0.008 260 / .08)',
   grid: 'display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))',
   card:
-    'border:1px solid oklch(96% 0.006 262 / .08);border-radius:10px;padding:1.1rem 1.25rem;background:oklch(16.5% 0.015 265)',
-  a: 'color:oklch(86% 0.01 262);text-underline-offset:3px',
+    'border:1px solid oklch(14% 0.008 260 / .08);border-radius:10px;padding:1.1rem 1.25rem;background:oklch(98.5% 0.003 260)',
+  a: 'color:oklch(28% 0.012 260);text-underline-offset:3px',
 }
 
 const FEATURES = [
@@ -123,8 +123,8 @@ const FAQ = [
  * The site sends no CSP header and index.html already runs inline scripts. */
 const HERO_FORM = `<form id="seo-hero-form" action="/#app" method="get" style="display:flex;flex-wrap:wrap;gap:.6rem;max-width:44rem;margin:0 0 1rem">
     <label for="seo-hero-url" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Video link</label>
-    <input id="seo-hero-url" type="url" name="url" placeholder="Paste a YouTube link" autocomplete="off" style="flex:1 1 18rem;min-width:0;padding:.8rem 1rem;border-radius:10px;border:1px solid oklch(96% 0.006 262 / .16);background:oklch(16.5% 0.015 265);color:oklch(96% 0.006 262);font:inherit;font-size:1rem">
-    <button type="submit" style="padding:.8rem 1.3rem;border-radius:10px;border:0;background:oklch(76% 0.17 50);color:oklch(13% 0.014 265);font:inherit;font-weight:600;cursor:pointer">Get free clips &rarr;</button>
+    <input id="seo-hero-url" type="url" name="url" placeholder="Paste a YouTube link" autocomplete="off" style="flex:1 1 18rem;min-width:0;padding:.8rem 1rem;border-radius:10px;border:1px solid oklch(14% 0.008 260 / .14);background:oklch(100% 0 0);color:oklch(14% 0.008 260);font:inherit;font-size:1rem">
+    <button type="submit" style="padding:.8rem 1.3rem;border-radius:10px;border:0;background:oklch(55% 0.15 52);color:oklch(100% 0 0);font:inherit;font-weight:600;cursor:pointer">Get free clips &rarr;</button>
   </form>
   <script>(function(){var f=document.getElementById('seo-hero-form');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();var u=(f.elements.url.value||'').trim();try{if(u)localStorage.setItem('os_pending_url',u);localStorage.setItem('openshorts_skip_landing','1')}catch(_){}location.hash='#app'})})()</script>`
 
@@ -161,12 +161,12 @@ const SWITCHING = [
 const link = ([href, label]) => `<a style="${S.a}" href="${href}">${label}</a>`
 
 const platformCard = ([title, body, links]) =>
-  `<div style="${S.card}"><h3 style="${S.h3}">${title}</h3><p style="margin:0 0 .6rem;color:oklch(64% 0.012 262);font-size:.9rem;line-height:1.6">${body}</p><p style="margin:0;font-size:.9rem;line-height:1.8">${links.map(([h, l]) => link([h, `${l} &rarr;`])).join('<br>')}</p></div>`
+  `<div style="${S.card}"><h3 style="${S.h3}">${title}</h3><p style="margin:0 0 .6rem;color:oklch(50% 0.015 260);font-size:.9rem;line-height:1.6">${body}</p><p style="margin:0;font-size:.9rem;line-height:1.8">${links.map(([h, l]) => link([h, `${l} &rarr;`])).join('<br>')}</p></div>`
 
 const card = (title, body) =>
-  `<div style="${S.card}"><h3 style="${S.h3}">${title}</h3><p style="margin:0;color:oklch(64% 0.012 262);font-size:.9rem;line-height:1.6">${body}</p></div>`
+  `<div style="${S.card}"><h3 style="${S.h3}">${title}</h3><p style="margin:0;color:oklch(50% 0.015 260);font-size:.9rem;line-height:1.6">${body}</p></div>`
 
-export const LANDING_FALLBACK = `<div id="seo-content" style="background:oklch(13% 0.014 265);color:oklch(86% 0.01 262);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;line-height:1.65">
+export const LANDING_FALLBACK = `<div id="seo-content" style="background:oklch(100% 0 0);color:oklch(28% 0.012 260);font-family:'Geist',ui-sans-serif,system-ui,sans-serif;line-height:1.65">
 <style>${NAV_CSS}</style>
 ${renderNav()}
 ${NAV_SCRIPT}
@@ -177,7 +177,7 @@ ${NAV_SCRIPT}
   <p style="${S.p};max-width:44rem;font-size:1.05rem">Paste a YouTube link or upload a podcast, stream or interview. The AI picks the 3 to 15 moments worth posting, reframes them to 9:16 around the people talking, and burns in the captions, ready for TikTok, Reels and Shorts in minutes. Prefer to run it yourself? It is <a href="/free-ai-clip-generator" style="${S.a}">free and open source</a>. Claude, ChatGPT and n8n can drive it too, over <a href="/mcp" style="${S.a}">MCP</a>.</p>
   ${HERO_FORM}
   <p style="${S.muted};max-width:44rem">45,000+ accounts created &middot; 32,900+ videos clipped &middot; 8,300+ hours of video processed &middot; 7.5k GitHub stars.</p>
-  <p style="${S.muted};max-width:44rem"><strong style="color:oklch(75% 0.11 150)">No credit card required.</strong> Your first video is free up to 60 minutes, then 20 free minutes every month. Paid plans from $12/month without a watermark. Prefer to run it yourself? <a style="${S.a}" href="https://github.com/mutonby/openshorts" rel="noopener">Self-host free on GitHub</a>.</p>
+  <p style="${S.muted};max-width:44rem"><strong style="color:oklch(50% 0.13 145)">No credit card required.</strong> Your first video is free up to 60 minutes, then 20 free minutes every month. Paid plans from $12/month without a watermark. Prefer to run it yourself? <a style="${S.a}" href="https://github.com/mutonby/openshorts" rel="noopener">Self-host free on GitHub</a>.</p>
   <p style="${S.muted};max-width:44rem">Works with links from ${WORKS_WITH.map(link).join(' &middot; ')}.</p>
 </div></section>
 
@@ -210,7 +210,7 @@ ${NAV_SCRIPT}
 <section id="how-it-works" style="${S.section}"><div style="${S.wrap}">
   <h2 style="${S.h2}">How to turn a long video into Shorts with AI (5 steps)</h2>
   <ol style="max-width:48rem;padding-left:1.25rem;margin:0">
-    ${STEPS.map(([t, b]) => `<li style="margin-bottom:.75rem"><strong style="color:oklch(96% 0.006 262)">${t}.</strong> <span style="color:oklch(64% 0.012 262)">${b}</span></li>`).join('')}
+    ${STEPS.map(([t, b]) => `<li style="margin-bottom:.75rem"><strong style="color:oklch(14% 0.008 260)">${t}.</strong> <span style="color:oklch(50% 0.015 260)">${b}</span></li>`).join('')}
   </ol>
 </div></section>
 
@@ -270,7 +270,7 @@ ${NAV_SCRIPT}
 <section id="faq" style="${S.section}"><div style="${S.wrap}">
   <h2 style="${S.h2}">FAQ: free AI clipping, watermarks and limits</h2>
   <dl style="max-width:48rem;margin:0">
-    ${FAQ.map(([q, a]) => `<dt style="${S.h3};margin-top:1.5rem">${q}</dt><dd style="margin:.4rem 0 0;color:oklch(64% 0.012 262)">${a}</dd>`).join('')}
+    ${FAQ.map(([q, a]) => `<dt style="${S.h3};margin-top:1.5rem">${q}</dt><dd style="margin:.4rem 0 0;color:oklch(50% 0.015 260)">${a}</dd>`).join('')}
   </dl>
 </div></section>
 

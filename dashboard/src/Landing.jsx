@@ -123,12 +123,6 @@ const SHOWCASE = [
     body: 'Add OpenShorts to Claude or ChatGPT with one URL and ask for clips. Same pipeline, same minutes, no API key to manage.',
     media: { type: 'img', src: '/screens/connect-an-agent.webp', w: 684, h: 366, alt: 'Connecting OpenShorts to an AI agent' },
   },
-  {
-    id: 'ugc', tab: 'ai ugc videos',
-    title: 'product videos with AI actors',
-    body: 'Describe a product or paste its URL: script, lip-synced AI actor, B-roll and captions, for well under a dollar a video on the low-cost mode.',
-    media: { type: 'img', src: '/screens/app-ugc.webp', w: 1114, h: 612, alt: 'The UGC gallery with AI actor videos' },
-  },
 ];
 
 const CAPTION_STYLES = [
@@ -465,16 +459,6 @@ export default function Landing({ onLaunchApp }) {
       icon: Bot,
       title: "MCP Server, API & CLI for AI Agents",
       description: "Connect Claude, ChatGPT or n8n to an always-on endpoint, or run pip install openshorts and clip from the terminal. Same pipeline, no dashboard needed."
-    },
-    {
-      icon: Sparkles,
-      title: "AI UGC Video Generator",
-      description: "AI writes the script and generates a lip-synced avatar video — from $0.65/video."
-    },
-    {
-      icon: FileVideo,
-      title: "AI Actors & Lip-Sync",
-      description: "Pick an AI actor or upload a photo for a lip-synced talking head video."
     }
   ];
 
@@ -489,7 +473,7 @@ export default function Landing({ onLaunchApp }) {
   const faqs = [
     {
       question: "Is OpenShorts really free?",
-      answer: "Self-hosting is free under the MIT licence, with no watermark and no cap; OpenShorts Cloud has a free plan (your first video up to 60 minutes, then 20 minutes a month, watermarked) and paid plans from $12/month. There is no catch, but there are two different things on offer. (1) Self-hosted is 100% free and open source: you run it with Docker on your own machine, bring your own API keys, and there are no watermarks, no usage limits and no subscription. What it costs you is hardware and time. On a typical CPU an 8-minute video takes 5 to 8 minutes to process, and you need your own Google Gemini key (required, free tier is 1,500 requests/day), plus ElevenLabs for dubbing and fal.ai for AI Shorts if you want those. (2) Hosted at openshorts.app is the same software with the running costs covered: our NVIDIA GPU clips that same 8-minute video in about 50 seconds, the Gemini key is included so there is nothing to create or paste, auto-posting to TikTok, Instagram and YouTube is already wired up, and your clips are stored and re-openable from any browser. Its free plan clips your first video whole up to 60 minutes, then 20 minutes a month, with a watermark and no credit card; paid plans start at $12/mo for 100 minutes without watermark. So: free if you are happy to run it yourself, paid if you would rather it just ran fast. For reference, Opus Clip starts at $15/month and bills a credit per minute of source video."
+      answer: "Self-hosting is free under the MIT licence, with no watermark and no cap; OpenShorts Cloud has a free plan (your first video up to 60 minutes, then 20 minutes a month, watermarked) and paid plans from $12/month. There is no catch, but there are two different things on offer. (1) Self-hosted is 100% free and open source: you run it with Docker on your own machine, bring your own API keys, and there are no watermarks, no usage limits and no subscription. What it costs you is hardware and time. On a typical CPU an 8-minute video takes 5 to 8 minutes to process, and you need your own Google Gemini key (required, free tier is 1,500 requests/day), plus ElevenLabs for dubbing if you want that. (2) Hosted at openshorts.app is the same software with the running costs covered: our NVIDIA GPU clips that same 8-minute video in about 50 seconds, the Gemini key is included so there is nothing to create or paste, auto-posting to TikTok, Instagram and YouTube is already wired up, and your clips are stored and re-openable from any browser. Its free plan clips your first video whole up to 60 minutes, then 20 minutes a month, with a watermark and no credit card; paid plans start at $12/mo for 100 minutes without watermark. So: free if you are happy to run it yourself, paid if you would rather it just ran fast. For reference, Opus Clip starts at $15/month and bills a credit per minute of source video."
     },
     {
       question: "Do the clips have a watermark?",
@@ -513,7 +497,7 @@ export default function Landing({ onLaunchApp }) {
     },
     {
       question: "How does OpenShorts compare to Opus Clip?",
-      answer: "OpenShorts is an open source alternative to Opus Clip. Both offer AI viral moment detection and smart vertical cropping. Key differences: OpenShorts is free when self-hosted and $12/month hosted, against Opus Clip from $15/month billed per source minute. OpenShorts can run on your own infrastructure (full data privacy); Opus Clip is cloud-only. OpenShorts uses Google Gemini 3.1 Flash-Lite for AI analysis vs Opus Clip's proprietary model. OpenShorts adds two-speaker and screencast layouts, AI UGC videos with lip-synced actors, and an MCP server for Claude and ChatGPT. The honest trade-off: Opus Clip has the larger caption-style library."
+      answer: "OpenShorts is an open source alternative to Opus Clip. Both offer AI viral moment detection and smart vertical cropping. Key differences: OpenShorts is free when self-hosted and $12/month hosted, against Opus Clip from $15/month billed per source minute. OpenShorts can run on your own infrastructure (full data privacy); Opus Clip is cloud-only. OpenShorts uses Google Gemini 3.1 Flash-Lite for AI analysis vs Opus Clip's proprietary model. OpenShorts adds two-speaker and screencast layouts, an autonomous AI clipping agent, and an MCP server for Claude and ChatGPT. The honest trade-off: Opus Clip has the larger caption-style library."
     },
     {
       question: "How do I turn a long-form video into TikTok or Reels clips?",
@@ -522,18 +506,6 @@ export default function Landing({ onLaunchApp }) {
     {
       question: "Can OpenShorts generate YouTube thumbnails and titles for free?",
       answer: "Yes. OpenShorts includes a free AI YouTube thumbnail generator, a free AI YouTube title generator, and a free AI YouTube description generator — all powered by Google Gemini 3.1 Flash-Lite. Upload your video and the AI suggests 10 viral title options with an interactive refinement chat. Then it generates multiple thumbnail designs using AI image generation — upload a face photo and background image for personalized results. The studio also auto-generates YouTube descriptions with chapter timestamps and lets you publish directly to YouTube. Everything is 100% free with the Gemini free tier."
-    },
-    {
-      question: "What is the AI UGC Video Generator?",
-      answer: "OpenShorts includes an AI UGC (User Generated Content) video creator that generates marketing videos with AI actors for any product or business. You describe your product or paste a website URL — the AI writes a viral script, generates a realistic AI actor with lip-synced voiceover, adds b-roll visuals and TikTok-style subtitles, with the hook spoken in the first seconds. The result is a ready-to-post vertical video for TikTok, Instagram Reels, or YouTube Shorts. Two cost modes: Low Cost (~$0.65/video using Hailuo + VEED Lipsync) and Premium (~$2/video using Kling Avatar v2)."
-    },
-    {
-      question: "Can I use the AI UGC Video Generator for any type of business?",
-      answer: "Yes. The AI Shorts generator works for any product, service, or business — not just SaaS. You can use it for restaurants, e-commerce stores, coaching services, local businesses, personal brands, apps, and more. Just describe your business in the text field (e.g. 'Artisan pizza restaurant in Madrid, wood-fired oven, home delivery') or paste your website URL, and the AI generates viral marketing scripts tailored to your business."
-    },
-    {
-      question: "How much does it cost to generate an AI UGC video?",
-      answer: "OpenShorts itself is free, but the AI Shorts feature uses external APIs (fal.ai for video generation, ElevenLabs for voiceover) that charge per use. Low Cost mode costs approximately $0.65 per video (Flux image $0.05 + ElevenLabs voice $0.10 + Hailuo img2video $0.19 + VEED Lipsync $0.20 + b-roll $0.10). Premium mode costs approximately $2.00 per video using Kling Avatar v2 for higher quality. Both modes are significantly cheaper than hiring UGC creators ($50-500 per video) or using platforms like HeyGen ($24-180/month)."
     },
     {
       question: "What AI does OpenShorts use for viral moment detection?",
@@ -879,7 +851,7 @@ export default function Landing({ onLaunchApp }) {
                 <span className="readout border border-rule rounded-full px-2.5 py-1">Free · Docker</span>
               </div>
               <ul className="space-y-1.5 mb-6 flex-1">
-                {['Your machine: 5 to 8 min on a typical CPU', 'Bring your own Gemini, ElevenLabs and fal.ai keys', 'You install it, you maintain it, you back it up', 'Free forever, and always will be'].map((f, i) => (
+                {['Your machine: 5 to 8 min on a typical CPU', 'Bring your own Gemini and ElevenLabs keys', 'You install it, you maintain it, you back it up', 'Free forever, and always will be'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-muted"><Check size={14} className="text-ok shrink-0" />{f}</li>
                 ))}
               </ul>
@@ -936,8 +908,6 @@ export default function Landing({ onLaunchApp }) {
                 <ComparisonRow feature="Open Source" openshorts={checkIcon} opusclip={<span className="text-muted text-sm">No</span>} kapwing={<span className="text-muted text-sm">No</span>} />
                 <ComparisonRow feature="AI YouTube Thumbnail Generator" openshorts={checkIcon} opusclip={<span className="text-muted text-sm">No</span>} kapwing={<span className="text-muted text-sm">Paid</span>} />
                 <ComparisonRow feature="AI Title & Description Generator" openshorts={checkIcon} opusclip={<span className="text-muted text-sm">Limited</span>} kapwing={<span className="text-muted text-sm">Paid</span>} />
-                <ComparisonRow feature="AI UGC Video Generator" openshorts={checkIcon} opusclip={<span className="text-muted text-sm">No</span>} kapwing={<span className="text-muted text-sm">No</span>} />
-                <ComparisonRow feature="AI Actors with Lip-Sync" openshorts={checkIcon} opusclip={<span className="text-muted text-sm">No</span>} kapwing={<span className="text-muted text-sm">No</span>} />
                 <ComparisonRow feature="Usage Limits" openshorts={<span className="text-ok text-sm">Unlimited self-hosted</span>} opusclip={<span className="text-muted text-sm">Per plan</span>} kapwing={<span className="text-muted text-sm">Per plan</span>} />
               </tbody>
             </table>
@@ -980,7 +950,7 @@ export default function Landing({ onLaunchApp }) {
               },
               {
                 title: "Businesses & Brands",
-                description: "UGC-style marketing videos with AI actors — from $0.65 per video.",
+                description: "Turn webinars, product demos, and keynotes into high-converting short clips.",
                 icon: Sparkles
               }
             ].map((useCase, i) => (
@@ -994,26 +964,15 @@ export default function Landing({ onLaunchApp }) {
         </div>
       </section>
 
-      {/* Also included: the two tools that are not the clipper */}
+      {/* Also included: YouTube Studio */}
       <section className="py-20 px-6 border-t border-rule">
         <div className="max-w-6xl mx-auto">
-          <SectionHeader eyebrow="09 · Also Included" title="two more tools, same account">
+          <SectionHeader eyebrow="09 · Also Included" title="YouTube Studio, same account">
             In the same openshorts.app account, with no keys and no setup.
           </SectionHeader>
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="max-w-2xl mx-auto">
             <div className="card p-8">
-              <p className="eyebrow mb-4">01 · AI Shorts</p>
-              <Sparkles size={20} className="text-brass mb-4" />
-              <h3 className="font-display text-2xl lowercase text-ink mb-2">AI Shorts</h3>
-              <p className="text-muted text-sm leading-relaxed mb-4">UGC marketing videos with AI actors for any business.</p>
-              <ul className="space-y-1.5">
-                {['AI actor generation + lip-sync', 'B-roll + TikTok-style subtitles', 'From $0.65 per video'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs text-muted"><Check size={12} className="text-ok shrink-0" />{f}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="card p-8">
-              <p className="eyebrow mb-4">02 · Studio</p>
+              <p className="eyebrow mb-4">Studio</p>
               <Monitor size={20} className="text-brass mb-4" />
               <h3 className="font-display text-2xl lowercase text-ink mb-2">YouTube Studio</h3>
               <p className="text-muted text-sm leading-relaxed mb-4">Free AI YouTube toolkit: thumbnails, titles, descriptions.</p>
@@ -1095,26 +1054,6 @@ export default function Landing({ onLaunchApp }) {
                     <p className="text-muted text-sm leading-relaxed">Enables direct publishing to YouTube, TikTok, and Instagram Reels from the dashboard. <a href="https://www.upload-post.com" target="_blank" rel="noopener noreferrer" className="text-brass underline hover:brightness-110">Social media API</a> that lets you post your clips and thumbnails without leaving OpenShorts.</p>
                   </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-5 mt-5">
-                  <div className="card p-6 relative">
-                    <span className="readout absolute top-4 right-4 border border-rule rounded-full px-2.5 py-1">AI Shorts</span>
-                    <div className="w-10 h-10 rounded-input bg-paper3 flex items-center justify-center mb-4">
-                      <Zap size={18} className="text-brass" />
-                    </div>
-                    <h3 className="font-display text-xl lowercase text-ink mb-1">fal.ai API</h3>
-                    <div className="mb-3"><span className="badge-ok">Pay-per-use from $0.04</span></div>
-                    <p className="text-muted text-sm leading-relaxed">Powers AI Shorts: generates AI actor images (Flux), talking head videos (Hailuo/Kling), and lip-sync (VEED). Required only for the AI UGC video generator.</p>
-                  </div>
-                  <div className="card p-6 relative">
-                    <span className="readout absolute top-4 right-4 border border-rule rounded-full px-2.5 py-1">AI Shorts</span>
-                    <div className="w-10 h-10 rounded-input bg-paper3 flex items-center justify-center mb-4">
-                      <Languages size={18} className="text-brass" />
-                    </div>
-                    <h3 className="font-display text-xl lowercase text-ink mb-1">ElevenLabs TTS</h3>
-                    <div className="mb-3"><span className="badge-ok">Free tier included</span></div>
-                    <p className="text-muted text-sm leading-relaxed">Generates natural voiceovers for AI Shorts from the script. Multiple voice options for male and female actors in English and Spanish.</p>
-                  </div>
-                </div>
               </div>
             </section>
 
@@ -1132,7 +1071,6 @@ export default function Landing({ onLaunchApp }) {
                     { name: "MediaPipe", desc: "Face Tracking" },
                     { name: "FFmpeg", desc: "Video Processing" },
                     { name: "ElevenLabs", desc: "Voice & TTS" },
-                    { name: "fal.ai", desc: "AI Video Gen" },
                     { name: "React + Vite", desc: "Dashboard" },
                     { name: "Docker", desc: "Deployment" }
                   ].map((tech, i) => (
@@ -1249,7 +1187,7 @@ export default function Landing({ onLaunchApp }) {
           <div className="border-t border-rule pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/logo-openshorts.png" alt="OpenShorts" className="w-6 h-6" />
-              <span className="text-sm text-muted">OpenShorts — Free Open Source Clip Generator & AI UGC Video Creator</span>
+              <span className="text-sm text-muted">OpenShorts — Free Open Source AI Clip Generator &amp; YouTube Studio</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm lowercase text-muted">
               <a href="https://github.com/mutonby/openshorts" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">GitHub</a>

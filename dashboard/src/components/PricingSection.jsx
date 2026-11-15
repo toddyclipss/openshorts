@@ -229,11 +229,11 @@ export default function PricingSection({ onRequireLogin }) {
             <span className="badge-warn"><Zap size={12} /> Bring your own key</span>
           </div>
           <p className="text-sm text-muted mb-3 leading-relaxed">
-            <b className="text-ink2">AI Shorts</b> (AI-actor UGC videos) and <b className="text-ink2">voice dubbing</b> use premium generation from
-            <b className="text-ink2"> fal.ai</b> and <b className="text-ink2">ElevenLabs</b>. Connect your own keys for those — you're billed by those
-            providers directly (typically ~$0.65-2 per video). Your plan still covers the script &amp; orchestration.
+            <b className="text-ink2">Voice dubbing</b> into other languages uses <b className="text-ink2">ElevenLabs</b>.
+            Connect your own key for dubbing — you're billed by ElevenLabs directly.
+            Your plan still covers all clipping and video rendering.
           </p>
-          <p className="text-xs text-muted">Managed credits for these are coming later — no keys needed.</p>
+          <p className="text-xs text-muted">Managed voice credits are coming later — no keys needed.</p>
         </div>
       </div>
 

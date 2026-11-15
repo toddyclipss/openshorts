@@ -11,7 +11,7 @@ Each block pins one rule at the function or HTTP surface:
   downloads it, bills transcription by length, and bounds its text calls;
 - social profiles are created only by the connect page, and posting is capped
   per hour (and per day on the free plan);
-- agent upload slots, OAuth registrations and SaaSShorts inputs are bounded;
+- agent upload slots and OAuth registrations are bounded;
 - the free AI-edit allowance is counted in the ledger, so it survives restarts.
 """
 import asyncio
@@ -442,7 +442,7 @@ class TestSocialPostRate:
 
 
 # --------------------------------------------------------------------------- #
-# Agent upload slots, OAuth registration, SaaSShorts inputs
+# Agent upload slots, OAuth registration
 # --------------------------------------------------------------------------- #
 def test_open_upload_slots_per_user_are_capped(cloud_user, dirs, monkeypatch):
     monkeypatch.setattr(config, "MAX_PENDING_UPLOADS_PER_USER", 2)
@@ -469,17 +469,6 @@ def test_oauth_registration_is_rate_limited_per_ip(monkeypatch):
     codes = [c.post("/oauth/register", json=bad).status_code for _ in range(3)]
     assert codes == [400, 400, 429]
     assert c.post("/oauth/register", json=bad).json()["error"] == "slow_down"
-
-
-@pytest.mark.parametrize("body, field", [
-    ({"description": "x", "num_scripts": 500}, "num_scripts"),
-    ({"description": "x", "num_scripts": 0}, "num_scripts"),
-    ({"description": "x" * (config.SAAS_DESCRIPTION_MAX_CHARS + 1)}, "description"),
-])
-def test_saasshorts_inputs_are_bounded(body, field):
-    r = _call("post", "/api/saasshorts/analyze", json=body, headers={"X-Gemini-Key": "k"})
-    assert r.status_code in (400, 413)
-    assert field in r.json()["detail"]
 
 
 # --------------------------------------------------------------------------- #

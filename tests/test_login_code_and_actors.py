@@ -1,4 +1,4 @@
-"""Google sign-in code exchange helpers, and private SaaSShorts actors.
+"""Google sign-in code exchange helpers, and private actor storage.
 
 The Google callback used to put the 30-day session JWT in the redirect's URL
 hash. It now hands a single-use code bound to a challenge the dashboard made

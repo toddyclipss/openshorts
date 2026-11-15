@@ -26,10 +26,10 @@ const esc = (s) =>
  * go through Vite or Tailwind, so they cannot rely on the app's stylesheet. */
 const CSS = `
 :root{
-  --paper:oklch(13% 0.014 265);--paper2:oklch(16.5% 0.015 265);--paper3:oklch(20% 0.016 265);
-  --ink:oklch(96% 0.006 262);--ink2:oklch(86% 0.01 262);--muted:oklch(64% 0.012 262);
-  --rule:oklch(96% 0.006 262 / .08);--rule2:oklch(96% 0.006 262 / .14);
-  --brass:oklch(76% 0.17 50);--ok:oklch(75% 0.11 150);
+  --paper:oklch(100% 0 0);--paper2:oklch(98.5% 0.003 260);--paper3:oklch(94.5% 0.005 260);
+  --ink:oklch(14% 0.008 260);--ink2:oklch(28% 0.012 260);--muted:oklch(50% 0.015 260);
+  --rule:oklch(14% 0.008 260 / .08);--rule2:oklch(14% 0.008 260 / .14);
+  --brass:oklch(55% 0.15 52);--ok:oklch(50% 0.13 145);
   --display:"Instrument Serif",ui-serif,Georgia,serif;
   --body:"Geist",ui-sans-serif,system-ui,-apple-system,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
@@ -107,13 +107,13 @@ td.os{color:var(--ink)}
 .cta-box strong{display:block;font-family:var(--display);font-weight:400;font-size:1.2rem;
   line-height:1.25;color:var(--ink);margin-bottom:.35rem}
 .cta-box p{margin:0;font-size:.9rem;color:var(--muted)}
-.cta-box .btn{background:var(--brass);color:oklch(17% 0.03 50);padding:.65rem 1.2rem;
+.cta-box .btn{background:var(--brass);color:oklch(100% 0 0);padding:.65rem 1.2rem;
   border-radius:8px;font-size:.9rem;font-weight:500;text-decoration:none;white-space:nowrap}
 .cta-act{display:flex;flex-direction:column;align-items:flex-start;gap:.35rem}
 .cta-micro{font-size:.72rem;color:var(--muted);max-width:18rem;line-height:1.4}
 .best-alts ol{margin:0 0 .4rem}
 .plans .btn-primary{display:inline-block;text-decoration:none;white-space:nowrap}
-.cta-box .btn:hover{color:oklch(17% 0.03 50);filter:brightness(1.06)}
+.cta-box .btn:hover{color:oklch(100% 0 0);filter:brightness(1.06)}
 .lede{font-size:1.05rem;color:var(--ink2);max-width:44rem;margin:0 0 1.5rem}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .tool{background:var(--paper2);border:1px solid var(--rule2);border-radius:14px;padding:1.25rem;margin:0 0 2.5rem}
@@ -124,7 +124,7 @@ td.os{color:var(--ink)}
 .tool textarea{width:100%;resize:vertical;line-height:1.5}
 .tool input:focus-visible,.tool textarea:focus-visible,.tool select:focus-visible,.tool button:focus-visible{
   outline:2px solid var(--brass);outline-offset:2px}
-.btn-primary{background:var(--brass);color:oklch(17% 0.03 50);border:0;border-radius:9px;padding:.75rem 1.2rem;
+.btn-primary{background:var(--brass);color:oklch(100% 0 0);border:0;border-radius:9px;padding:.75rem 1.2rem;
   font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
 .btn-primary:disabled{opacity:.55;cursor:wait}
 .btn-ghost,.tool-actions button{background:transparent;color:var(--ink2);border:1px solid var(--rule2);border-radius:8px;
@@ -132,7 +132,7 @@ td.os{color:var(--ink)}
 .btn-ghost:hover,.tool-actions button:hover{border-color:var(--brass);color:var(--ink)}
 .tool-hint{font-size:.85rem;color:var(--muted);margin:.7rem 0 0}
 .tool-status{margin-top:1rem;font-size:.95rem}
-.tool-status[data-kind=error]{color:oklch(75% 0.15 25)}
+.tool-status[data-kind=error]{color:oklch(52% 0.20 25)}
 .tool-status[data-kind=busy]{color:var(--muted)}
 .tool-status[data-kind=warn]{border:1px solid var(--rule2);border-left:3px solid var(--brass);border-radius:10px;padding:1rem 1.1rem;background:var(--paper)}
 .tool-status[data-kind=warn] p{margin:0 0 .7rem}
@@ -152,7 +152,7 @@ td.os{color:var(--ink)}
 .modes{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 .9rem;border:0;padding:0}
 .modes label{border:1px solid var(--rule2);border-radius:999px;padding:.4rem .95rem;font-size:.9rem;cursor:pointer;color:var(--ink2)}
 .modes input{position:absolute;opacity:0}
-.modes label:has(input:checked){background:var(--brass);color:oklch(17% 0.03 50);border-color:var(--brass)}
+.modes label:has(input:checked){background:var(--brass);color:oklch(100% 0 0);border-color:var(--brass)}
 .modes label:has(input:focus-visible){outline:2px solid var(--brass);outline-offset:2px}
 .field{display:block;margin:0 0 .8rem}
 .field span{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.3rem}
