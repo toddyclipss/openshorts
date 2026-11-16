@@ -1,5 +1,6 @@
 import express from "express";
 import path from "node:path";
+import fs from "node:fs";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { initBundle } from "./bundle.js";
@@ -46,7 +47,7 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 
 const PORT = parseInt(process.env.PORT || "3100", 10);
-const OUTPUT_DIR = process.env.OUTPUT_DIR || "/output";
+const OUTPUT_DIR = process.env.OUTPUT_DIR || (fs.existsSync("/output") ? "/output" : path.resolve(import.meta.dirname, "../../output"));
 const TEMPLATES_DIR = process.env.TEMPLATES_DIR || path.resolve(import.meta.dirname, "../../templates");
 
 // Serve video files from the shared output volume so renderers can access them via HTTP
