@@ -862,9 +862,13 @@ function App() {
                 // Automatically transition to the HyperFrames director studio for the top viral clip
                 setHyperFramesEditingClip(best.index);
 
+                const geminiKey = apiKey || localStorage.getItem('gemini_key');
+                const reqHeaders = { 'Content-Type': 'application/json' };
+                if (geminiKey) reqHeaders['X-Gemini-Key'] = geminiKey;
+
                 apiFetch('/api/hyperframes/auto-edit', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: reqHeaders,
                   body: JSON.stringify({ job_id: jobId, clip_index: best.index })
                 }).then(res => res.ok ? res.json() : null).then(resData => {
                   if (resData?.props) {

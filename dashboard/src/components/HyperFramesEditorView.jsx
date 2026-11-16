@@ -83,13 +83,12 @@ export default function HyperFramesEditorView({
 
     // Pristine clean video URL (strips burned subtitle, hook, or watermark prefixes)
     const cleanVideoUrl = useMemo(() => {
-        const raw = clip?.video_url || props.videoUrl || '';
+        const raw = props.videoUrl || clip?.video_url || '';
         if (!raw) return '';
         let f = raw.split('/').pop() || '';
-        let prev;
-        do { prev = f; f = f.replace(/^(?:subtitled_\d+_|hooked_\d+_|hook_|wm_)/, ''); } while (f !== prev);
-        return raw.replace(/[^/]+$/, f);
-    }, [clip?.video_url, props.videoUrl]);
+        const cleaned = f.replace(/^(?:(?:subtitled|hooked|recut)_\d+_|edited_|hook_|wm_)+/, '');
+        return raw.replace(/[^/]+$/, cleaned);
+    }, [props.videoUrl, clip?.video_url]);
 
     // Fetch word-level captions if not present
     useEffect(() => {

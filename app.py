@@ -7502,15 +7502,21 @@ async def hyperframes_auto_edit(
             clip = job['result']['clips'][req.clip_index]
             raw_filename = clip['video_url'].split('/')[-1]
 
-        # Strip burned captions, hooks, and watermark to obtain the pristine clean base clip
-        clean_filename = _strip_burned_captions(output_dir, raw_filename, materialize=False)
-        clean_filename = _strip_burned_hook(output_dir, clean_filename)
-        clean_filename = _strip_watermark_copy(output_dir, clean_filename)
-
-        if os.path.exists(os.path.join(output_dir, clean_filename)):
-            filename = clean_filename
+        # Strip all derivation prefixes (subtitled_, hooked_, hook_, edited_, recut_, wm_) to obtain the pristine clean base clip
+        clean_candidate = re.sub(r'^(?:(?:subtitled|hooked|recut)_\d+_|edited_|hook_|wm_)+', '', raw_filename)
+        if os.path.exists(os.path.join(output_dir, clean_candidate)):
+            filename = clean_candidate
         else:
-            filename = raw_filename
+            # Fallback: search for file ending with _clip_{req.clip_index + 1}.mp4 without derivation prefixes
+            clean_matches = [
+                f for f in os.listdir(output_dir)
+                if f.endswith(f"_clip_{req.clip_index + 1}.mp4")
+                and not any(f.startswith(p) for p in ['subtitled_', 'hooked_', 'hook_', 'edited_', 'recut_', 'wm_', 'temp_'])
+            ]
+            if clean_matches:
+                filename = clean_matches[0]
+            else:
+                filename = raw_filename
 
         input_path = os.path.join(output_dir, filename)
 
