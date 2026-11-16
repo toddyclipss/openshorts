@@ -5564,15 +5564,16 @@ async def process_endpoint(
     if chosen:
         print(f"[layouts] job={job_id} enabled={sorted(chosen)}")
 
-    # Auto-hook: burn each clip's Gemini hook text during the render. Off when
-    # the field is absent, so API/MCP/webhook callers keep their old output
-    # byte-for-byte; the dashboard sends an explicit value either way.
-    if str(auto_hook).lower() in ("1", "true", "yes"):
+    # Auto-hook: burn each clip's Gemini hook text during the render. Off by default
+    # so HyperFrames can handle dynamic, animated hooks on clean vertical video.
+    if auto_hook is not None and str(auto_hook).lower() in ("1", "true", "yes"):
         env["AUTO_HOOK"] = "1"
         from hooks import HOOK_STYLES
         if auto_hook_style in HOOK_STYLES:
             env["AUTO_HOOK_STYLE"] = auto_hook_style
         print(f"[auto-hook] job={job_id} style={env.get('AUTO_HOOK_STYLE', 'classic')}")
+    else:
+        env["AUTO_HOOK"] = "0"
 
     # Manual generation controls (discussion #65): optional clip-count target
     # and duration band, forwarded to the selection prompts via the same env
@@ -5609,12 +5610,15 @@ async def process_endpoint(
     if n_clips is not None or min_secs is not None or max_secs is not None:
         print(f"[gen-controls] job={job_id} clips={n_clips} band={min_secs}-{max_secs}")
 
-    # captions=false: the source already carries burned-in subtitles (or the
-    # caller adds its own later), so skip the free auto-caption pass instead
-    # of stacking a second layer. Absent → the deployment default (on).
-    if captions is not None and str(captions).lower() in ("0", "false", "no"):
+    # Captions: with HyperFrames handling animated dynamic subtitles, legacy
+    # static FFmpeg ASS subtitle burning is off by default to keep the base video clean.
+    # Only burn static ASS if explicitly requested with captions="1".
+    if captions is not None and str(captions).lower() in ("1", "true", "yes"):
+        env["AUTO_CAPTIONS"] = "1"
+        print(f"[captions] job={job_id} auto-captions on (legacy burn)")
+    else:
         env["AUTO_CAPTIONS"] = "0"
-        print(f"[captions] job={job_id} auto-captions off")
+        print(f"[captions] job={job_id} auto-captions off (clean video for HyperFrames)")
 
     input_path = None
     if url:
