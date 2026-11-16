@@ -7457,6 +7457,192 @@ async def generate_effects_config(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class HyperFramesAutoEditRequest(BaseModel):
+    job_id: str
+    clip_index: int
+    input_filename: Optional[str] = None
+
+
+@app.post("/api/hyperframes/auto-edit")
+async def hyperframes_auto_edit(
+    req: HyperFramesAutoEditRequest,
+    request: Request,
+):
+    """Generate complete structured HyperFrames viral video props (hook headline,
+    karaoke subtitles, and camera zooms) via Gemini AI, and persist them into the job."""
+    final_api_key = await resolve_gemini(request)
+    if not final_api_key:
+        raise gemini_missing_error()
+
+    await require_managed_entitlement(request)
+    await _ensure_job_files(req.job_id, request)
+
+    if req.job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = jobs[req.job_id]
+    await _assert_job_owner(request, job)
+    if 'result' not in job or 'clips' not in job['result']:
+        raise HTTPException(status_code=400, detail="Job result not available")
+
+    # Meter the managed Gemini call
+    edit_minutes = await _ai_edit_minutes(request, req.job_id) if BILLING_ENABLED else 0
+    reservation_id = await reserve_managed_action(
+        request, edit_minutes, req.job_id, "hyperframes_auto_edit"
+    )
+
+    try:
+        output_dir = os.path.join(OUTPUT_DIR, req.job_id)
+        if req.input_filename:
+            safe_name = os.path.basename(req.input_filename)
+            input_path = os.path.join(output_dir, safe_name)
+            filename = safe_name
+        else:
+            if req.clip_index >= len(job['result']['clips']):
+                raise HTTPException(status_code=404, detail="Clip not found")
+            clip = job['result']['clips'][req.clip_index]
+            filename = clip['video_url'].split('/')[-1]
+            input_path = os.path.join(output_dir, filename)
+
+        if not os.path.exists(input_path):
+            raise HTTPException(status_code=404, detail=f"Video file not found: {input_path}")
+
+        # Probe video metadata
+        probe_cmd = [
+            'ffprobe', '-v', 'error',
+            '-select_streams', 'v:0',
+            '-show_entries', 'stream=width,height,r_frame_rate,duration',
+            '-show_entries', 'format=duration',
+            '-of', 'json',
+            input_path,
+        ]
+        probe_result = subprocess.check_output(probe_cmd).decode().strip()
+        probe_data = json.loads(probe_result)
+
+        stream = probe_data.get('streams', [{}])[0]
+        width = int(stream.get('width', 1080))
+        height = int(stream.get('height', 1920))
+
+        r_frame_rate = stream.get('r_frame_rate', '30/1')
+        num, den = r_frame_rate.split('/')
+        fps = round(int(num) / int(den), 2)
+
+        duration = float(stream.get('duration', 0))
+        if duration == 0:
+            duration = float(probe_data.get('format', {}).get('duration', 0))
+
+        # Extract transcript and clip metadata
+        json_files = glob.glob(os.path.join(output_dir, "*_metadata.json"))
+        meta_data: Dict[str, Any] = {}
+        target_json = None
+        if json_files:
+            target_json = json_files[0]
+            with open(target_json, 'r') as f:
+                meta_data = json.load(f)
+
+        transcript = meta_data.get('transcript')
+        shorts = meta_data.get('shorts', [])
+        clip_data = shorts[req.clip_index] if req.clip_index < len(shorts) else {}
+
+        predicted_score = clip_data.get('predicted_score')
+        viral_hook_text = clip_data.get('viral_hook_text')
+        why = clip_data.get('why')
+
+        # Build word-level captions aligned to clip timeline
+        captions: List[Dict[str, Any]] = []
+        if transcript:
+            recipe_segments = (clip_data.get('recipe') or {}).get('segments')
+            if recipe_segments:
+                clip_transcript = recut.virtual_transcript(transcript, recipe_segments)
+                clip_start, clip_end = 0.0, recut.total_duration(recipe_segments)
+            else:
+                clip_transcript = transcript
+                clip_start = float(clip_data.get('start', 0.0))
+                clip_end = float(clip_data.get('end', duration))
+
+            for segment in clip_transcript.get('segments', []):
+                for word_info in segment.get('words', []):
+                    w_start = float(word_info.get('start', 0.0))
+                    w_end = float(word_info.get('end', 0.0))
+                    if w_end > clip_start and w_start < clip_end:
+                        captions.append({
+                            "text": str(word_info.get('word', '')).strip(),
+                            "startMs": int(max(0.0, w_start - clip_start) * 1000),
+                            "endMs": int(max(0.0, w_end - clip_start) * 1000),
+                        })
+
+        def run_generation():
+            editor = VideoEditor(api_key=final_api_key)
+            safe_filename = f"temp_hf_auto_{req.job_id}.mp4"
+            safe_input_path = os.path.join(output_dir, safe_filename)
+            shutil.copy(input_path, safe_input_path)
+            try:
+                vid_file = editor.upload_video(safe_input_path)
+                props = editor.get_viral_hyperframes_props(
+                    vid_file,
+                    duration=duration,
+                    fps=fps,
+                    width=width,
+                    height=height,
+                    transcript=transcript,
+                    predicted_score=predicted_score,
+                    viral_hook_text=viral_hook_text,
+                    why=why,
+                    captions=captions,
+                )
+                return props
+            finally:
+                if 'vid_file' in locals() and vid_file:
+                    editor.delete_uploaded(vid_file)
+                if os.path.exists(safe_input_path):
+                    os.remove(safe_input_path)
+
+        loop = asyncio.get_event_loop()
+        hyperframes_props = await loop.run_in_executor(None, run_generation)
+
+        if not hyperframes_props:
+            raise HTTPException(status_code=500, detail="Failed to generate HyperFrames props from Gemini")
+
+        hyperframes_props["videoUrl"] = f"/videos/{req.job_id}/{filename}"
+
+        # Persist in memory
+        if req.clip_index < len(job['result']['clips']):
+            mem_clip = job['result']['clips'][req.clip_index]
+            mem_clip['hyperframes_props'] = hyperframes_props
+            mem_clip['auto_edited'] = True
+
+        # Persist on disk
+        if target_json and os.path.exists(target_json):
+            try:
+                if req.clip_index < len(shorts):
+                    shorts[req.clip_index]['hyperframes_props'] = hyperframes_props
+                    shorts[req.clip_index]['auto_edited'] = True
+                    meta_data['shorts'] = shorts
+                    write_json_atomic(target_json, meta_data, indent=4)
+                    print(f"✅ Metadata updated with HyperFrames props for clip {req.clip_index}")
+            except Exception as meta_err:
+                print(f"⚠️ Failed to update metadata with HyperFrames props: {meta_err}")
+
+        if reservation_id:
+            await _metering.commit_reservation(reservation_id)
+
+        return {
+            "success": True,
+            "job_id": req.job_id,
+            "clip_index": req.clip_index,
+            "props": hyperframes_props,
+        }
+    except HTTPException:
+        if reservation_id:
+            await _metering.release_reservation(reservation_id)
+        raise
+    except Exception as e:
+        if reservation_id:
+            await _metering.release_reservation(reservation_id)
+        print(f"❌ HyperFrames Auto-Edit Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/subtitle")
 async def add_subtitles(req: SubtitleRequest, request: Request):
     if req.preset:

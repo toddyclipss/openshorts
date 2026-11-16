@@ -1,0 +1,45 @@
+{
+  "name": "short-video",
+  "version": "1.0.0",
+  "description": "HyperFrames deterministic viral short-form video composition for OpenShorts (9:16 vertical)",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "entry": "index.html",
+  "defaultQuality": "standard",
+  "defaultFormat": "mp4",
+  "variables": {
+    "videoUrl": {
+      "type": "string",
+      "description": "URL or relative path to the background MP4 video file"
+    },
+    "durationInFrames": {
+      "type": "number",
+      "description": "Total composition duration in frames"
+    },
+    "fps": {
+      "type": "number",
+      "default": 30
+    },
+    "width": {
+      "type": "number",
+      "default": 1080
+    },
+    "height": {
+      "type": "number",
+      "default": 1920
+    },
+    "hook": {
+      "type": "object",
+      "description": "Dynamic viral headline overlay"
+    },
+    "subtitles": {
+      "type": "object",
+      "description": "Karaoke / Pop animated word captions"
+    },
+    "effects": {
+      "type": "object",
+      "description": "Dynamic camera zoom and visual effects segments"
+    }
+  }
+}

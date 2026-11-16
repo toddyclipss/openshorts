@@ -3,7 +3,7 @@ import json
 import re
 import subprocess
 import time
-from typing import List
+from typing import List, Optional, Dict, Any
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
@@ -23,6 +23,38 @@ class EditDecision(BaseModel):
 
 class EditPlan(BaseModel):
     edits: List[EditDecision]
+
+
+class GeminiHookConfig(BaseModel):
+    text: str
+    style: str = "pill"
+    position: str = "top"
+    displayDurationSec: float = 3.5
+    entranceAnimation: str = "spring"
+
+
+class GeminiSubtitleStyle(BaseModel):
+    animation: str = "karaoke"
+    highlightColor: str = "#FFE600"
+    uppercase: bool = True
+    baseOpacity: float = 0.4
+
+
+class GeminiEffectSegment(BaseModel):
+    startSec: float
+    endSec: float
+    zoom: float = 1.0
+    zoomCenterX: float = 0.5
+    zoomCenterY: float = 0.4
+    brightness: float = 1.0
+    contrast: float = 1.0
+    saturate: float = 1.0
+
+
+class GeminiViralEditingPlan(BaseModel):
+    hook: GeminiHookConfig
+    subtitles: GeminiSubtitleStyle
+    effects: List[GeminiEffectSegment]
 
 
 class VideoEditor:
@@ -274,6 +306,263 @@ class VideoEditor:
         except json.JSONDecodeError:
             print(f"❌ Failed to parse effects config JSON: {response.text}")
             return None
+
+    @staticmethod
+    def _sanitize_effect_segments(raw_segments: List[dict], duration: float) -> List[dict]:
+        """Ensures effect segments cover the full duration with no gaps or overlaps."""
+        duration = float(duration)
+        if not raw_segments:
+            return [{
+                "startSec": 0.0,
+                "endSec": round(duration, 2),
+                "zoom": 1.0,
+                "zoomCenterX": 0.5,
+                "zoomCenterY": 0.4,
+                "brightness": 1.0,
+                "contrast": 1.0,
+                "saturate": 1.0,
+            }]
+
+        sorted_segs = sorted(raw_segments, key=lambda s: float(s.get("startSec", 0.0)))
+        sanitized: List[dict] = []
+        current_time = 0.0
+
+        for seg in sorted_segs:
+            start = round(max(0.0, float(seg.get("startSec", 0.0))), 2)
+            end = round(min(duration, float(seg.get("endSec", duration))), 2)
+
+            if end <= start:
+                continue
+
+            if start > current_time:
+                sanitized.append({
+                    "startSec": current_time,
+                    "endSec": start,
+                    "zoom": 1.0,
+                    "zoomCenterX": 0.5,
+                    "zoomCenterY": 0.4,
+                    "brightness": 1.0,
+                    "contrast": 1.0,
+                    "saturate": 1.0,
+                })
+                current_time = start
+
+            zoom = round(max(1.0, min(1.45, float(seg.get("zoom", 1.0)))), 2)
+            cx = round(max(0.1, min(0.9, float(seg.get("zoomCenterX", 0.5)))), 2)
+            cy = round(max(0.1, min(0.9, float(seg.get("zoomCenterY", 0.4)))), 2)
+            b = round(max(0.8, min(1.2, float(seg.get("brightness", 1.0)))), 2)
+            c = round(max(0.8, min(1.3, float(seg.get("contrast", 1.0)))), 2)
+            s = round(max(0.8, min(1.3, float(seg.get("saturate", 1.0)))), 2)
+
+            sanitized.append({
+                "startSec": current_time,
+                "endSec": end,
+                "zoom": zoom,
+                "zoomCenterX": cx,
+                "zoomCenterY": cy,
+                "brightness": b,
+                "contrast": c,
+                "saturate": s,
+            })
+            current_time = end
+
+        if current_time < duration:
+            sanitized.append({
+                "startSec": current_time,
+                "endSec": round(duration, 2),
+                "zoom": 1.0,
+                "zoomCenterX": 0.5,
+                "zoomCenterY": 0.4,
+                "brightness": 1.0,
+                "contrast": 1.0,
+                "saturate": 1.0,
+            })
+
+        return sanitized
+
+    def get_viral_hyperframes_props(
+        self,
+        video_file_obj,
+        duration: float,
+        fps: float = 30.0,
+        width: int = 1080,
+        height: int = 1920,
+        transcript: Optional[dict] = None,
+        predicted_score: Optional[int] = None,
+        viral_hook_text: Optional[str] = None,
+        why: Optional[str] = None,
+        captions: Optional[List[dict]] = None,
+    ) -> dict:
+        """Asks Gemini for a comprehensive, structured HyperFrames viral editing plan.
+
+        Choreographs:
+        1. High-curiosity viral headline hook (style, position, animation, text).
+        2. Dynamic word-level subtitle styling (karaoke / pop, highlight colors).
+        3. Gapless camera zooms and color grading over the entire clip duration.
+        """
+        uploaded_here = False
+        active_file_obj = video_file_obj
+        if isinstance(video_file_obj, str):
+            active_file_obj = self.upload_video(video_file_obj)
+            uploaded_here = True
+
+        try:
+            transcript_text = json.dumps(transcript) if transcript else "Not available."
+            score_readout = f"{predicted_score}/100" if predicted_score is not None else "High"
+            initial_hook = viral_hook_text or ""
+            initial_why = why or ""
+
+            prompt = f"""
+You are an elite viral short-form video director (TikTok, Instagram Reels, YouTube Shorts).
+Your mission is to maximize retention, scroll-stopping visual impact, and viewer engagement.
+
+Clip Metadata:
+- Duration: {duration:.2f} seconds ({int(round(duration * fps))} frames @ {fps} fps)
+- Resolution: {width}x{height} (9:16 vertical)
+- Predicted Virality Score: {score_readout}
+- Candidate Hook Idea: "{initial_hook}"
+- Viral Rationale: "{initial_why}"
+
+TRANSCRIPT (Context of spoken words with timestamps):
+{transcript_text}
+
+Produce a structured viral editing plan (GeminiViralEditingPlan) with three unified components:
+
+1. HOOK HEADLINE (Opening 2.5s - 4.5s):
+   - Short, punchy, high-curiosity headline (3 to 6 words) in ALL-CAPS with 1 emotional emoji at the end.
+   - Must evoke intense curiosity without misleading. Example: "THIS CHANGED EVERYTHING 🤯", "DON'T MAKE THIS MISTAKE ⚠️".
+   - style: "pill" (default rounded modern badge), "yellow", "dark", "outline", or "neon_glow".
+   - position: "top" (keeps vertical center clear for speaker).
+   - entranceAnimation: "spring" (punchy pop) or "slide-up".
+   - displayDurationSec: between 3.0 and 4.2 seconds.
+
+2. SUBTITLE STYLING:
+   - High-contrast, high-energy subtitle treatment for mobile screens.
+   - animation: "karaoke" (active word brightly highlighted while inactive words remain legible but dimmed) or "pop".
+   - highlightColor: pick a vibrant retention color (e.g. "#FFE600" yellow, "#00FF66" neon green, "#00F0FF" electric cyan, "#FF3366" hot pink).
+   - uppercase: true (all-caps format maximizes readability).
+   - baseOpacity: 0.35 to 0.45.
+
+3. CAMERA ZOOMS & COLOR EFFECTS:
+   - Choreograph time-based effect segments that cover the FULL video duration from 0.0s to {duration:.2f}s with NO GAPS.
+   - The first segment MUST start at 0.0. The last segment MUST end at {duration:.2f}.
+   - Zoom levels:
+     * 1.00: Standard framing (neutral sections).
+     * 1.08 - 1.15: Subtle push-in to focus on storytelling or build-up.
+     * 1.22 - 1.35: Punch-in zoom on punchlines, dramatic moments, or key revelations.
+   - In 9:16 vertical video, the speaker's face is centered horizontally (zoomCenterX = 0.5) and located in the upper half (zoomCenterY = 0.38 - 0.44).
+   - Color multipliers: subtle enhancement during high-energy moments (brightness 1.02-1.08, contrast 1.05-1.12, saturate 1.05-1.15). Keep 1.0 when neutral.
+   - Keep segments purposeful: 3 to 6 well-timed segments per 30 seconds aligned with speech cues.
+"""
+            print("🤖 Asking Gemini for HyperFrames viral editing plan...")
+            raw_plan: Optional[GeminiViralEditingPlan] = None
+
+            try:
+                config = types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=GeminiViralEditingPlan,
+                )
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=[active_file_obj, prompt],
+                    config=config,
+                )
+                parsed = getattr(response, "parsed", None)
+                if isinstance(parsed, GeminiViralEditingPlan):
+                    raw_plan = parsed
+                elif isinstance(parsed, dict):
+                    raw_plan = GeminiViralEditingPlan.model_validate(parsed)
+            except Exception as e:
+                print(f"⚠️ Structured schema request failed ({e}); falling back to raw JSON parsing...")
+                try:
+                    response = self.client.models.generate_content(
+                        model=self.model_name,
+                        contents=[active_file_obj, prompt],
+                        config=types.GenerateContentConfig(response_mime_type="application/json"),
+                    )
+                except Exception as ex:
+                    print(f"❌ Gemini content generation failed: {ex}")
+                    response = None
+
+            if raw_plan is None and response and getattr(response, "text", None):
+                text = response.text.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                elif text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+                s_idx = text.find('{')
+                e_idx = text.rfind('}')
+                if s_idx != -1 and e_idx != -1:
+                    try:
+                        data = json.loads(text[s_idx:e_idx+1])
+                        raw_plan = GeminiViralEditingPlan.model_validate(data)
+                    except Exception as parse_err:
+                        print(f"⚠️ Raw JSON parsing error: {parse_err}")
+
+            # Safe fallbacks if Gemini provided partial or no plan
+            hook_text = (
+                (raw_plan.hook.text.strip() if raw_plan and raw_plan.hook and raw_plan.hook.text else None)
+                or initial_hook.upper()
+                or "MUST WATCH MOMENT 🔥"
+            )
+            hook_style = (raw_plan.hook.style if raw_plan and raw_plan.hook else None) or "pill"
+            hook_position = (raw_plan.hook.position if raw_plan and raw_plan.hook else None) or "top"
+            hook_entrance = (raw_plan.hook.entranceAnimation if raw_plan and raw_plan.hook else None) or "spring"
+            hook_duration = (raw_plan.hook.displayDurationSec if raw_plan and raw_plan.hook else None) or min(4.0, max(2.5, duration * 0.25))
+
+            sub_anim = (raw_plan.subtitles.animation if raw_plan and raw_plan.subtitles else None) or "karaoke"
+            sub_highlight = (raw_plan.subtitles.highlightColor if raw_plan and raw_plan.subtitles else None) or "#FFE600"
+            sub_opacity = (raw_plan.subtitles.baseOpacity if raw_plan and raw_plan.subtitles else None) or 0.4
+            sub_uppercase = raw_plan.subtitles.uppercase if raw_plan and raw_plan.subtitles else True
+
+            raw_effects = [e.model_dump() for e in raw_plan.effects] if raw_plan and raw_plan.effects else []
+            sanitized_effects = self._sanitize_effect_segments(raw_effects, duration)
+
+            total_frames = max(1, int(round(duration * fps)))
+
+            return {
+                "durationInFrames": total_frames,
+                "fps": fps,
+                "width": width,
+                "height": height,
+                "hook": {
+                    "text": hook_text,
+                    "position": hook_position,
+                    "size": "M",
+                    "style": hook_style,
+                    "entranceAnimation": hook_entrance,
+                    "displayDurationSec": round(float(hook_duration), 2),
+                },
+                "subtitles": {
+                    "captions": captions or [],
+                    "position": "bottom",
+                    "style": {
+                        "fontFamily": "Montserrat",
+                        "fontSize": 72,
+                        "fontColor": "#FFFFFF",
+                        "highlightColor": sub_highlight,
+                        "highlightTextColor": "#000000",
+                        "borderColor": "#000000",
+                        "borderWidth": 5,
+                        "bgColor": "#000000",
+                        "bgOpacity": 0.0,
+                        "animation": sub_anim,
+                        "baseOpacity": round(float(sub_opacity), 2),
+                        "uppercase": sub_uppercase,
+                        "reveal": True,
+                        "shadow": 4,
+                    },
+                },
+                "effects": {
+                    "segments": sanitized_effects,
+                },
+            }
+        finally:
+            if uploaded_here and active_file_obj:
+                self.delete_uploaded(active_file_obj)
 
     @staticmethod
     def _extract_edits(response):

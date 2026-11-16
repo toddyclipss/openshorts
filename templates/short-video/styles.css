@@ -1,0 +1,286 @@
+/* ==========================================================================
+   HyperFrames Short Video Template Stylesheet (OpenShorts)
+   Resolution: 1080x1920 (9:16 Vertical Video)
+   ========================================================================== */
+
+/* --- Font Declarations --- */
+@font-face {
+  font-family: 'Anton-Regular';
+  src: url('./fonts/Anton-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Montserrat-ExtraBold';
+  src: url('./fonts/Montserrat-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSerif-Bold';
+  src: url('./fonts/NotoSerif-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* --- Base Reset & Stage Layout --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background-color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root, [data-composition-id="root"] {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background-color: #000000;
+  user-select: none;
+}
+
+/* --- Base Video & Transform Container --- */
+#video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#video-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  will-change: transform, filter;
+}
+
+#base-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Hook Headline Overlay --- */
+#hook-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Hook Positions */
+.hook-pos-top {
+  top: 20%;
+  bottom: auto;
+}
+
+.hook-pos-center {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+.hook-pos-bottom {
+  top: 70%;
+  bottom: auto;
+}
+
+#hook-box {
+  max-width: 90%;
+  text-align: center;
+  line-height: 1.62;
+  will-change: transform, opacity;
+}
+
+#hook-text {
+  display: inline-block;
+  word-break: break-word;
+  WebkitBoxDecorationBreak: clone;
+  boxDecorationBreak: clone;
+}
+
+/* Hook Sizes */
+.hook-size-S #hook-text {
+  font-size: 54px;
+}
+
+.hook-size-M #hook-text {
+  font-size: 68px;
+}
+
+.hook-size-L #hook-text {
+  font-size: 84px;
+}
+
+/* Hook Style Presets */
+.hook-style-pill #hook-text {
+  font-family: 'Montserrat-ExtraBold', 'Montserrat', sans-serif;
+  font-weight: 800;
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.98);
+  padding: 14px 34px;
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.hook-style-classic #hook-text {
+  font-family: 'NotoSerif-Bold', 'Noto Serif', serif;
+  font-weight: 700;
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.94);
+  padding: 16px 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.hook-style-dark #hook-text {
+  font-family: 'Montserrat-ExtraBold', sans-serif;
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: rgba(18, 18, 20, 0.92);
+  padding: 16px 32px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.hook-style-yellow #hook-text {
+  font-family: 'Anton-Regular', Impact, sans-serif;
+  font-weight: 400;
+  color: #000000;
+  background-color: rgba(255, 214, 0, 0.96);
+  padding: 14px 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.hook-style-red #hook-text {
+  font-family: 'Montserrat-ExtraBold', sans-serif;
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: rgba(220, 38, 38, 0.96);
+  padding: 16px 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+}
+
+.hook-style-outline #hook-text {
+  font-family: 'Montserrat-ExtraBold', sans-serif;
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: transparent;
+  text-shadow:
+    8px 0 0 #000000,
+    -8px 0 0 #000000,
+    0 8px 0 #000000,
+    0 -8px 0 #000000,
+    6px 6px 0 #000000,
+    -6px -6px 0 #000000,
+    6px -6px 0 #000000,
+    -6px 6px 0 #000000;
+}
+
+.hook-style-outline_yellow #hook-text {
+  font-family: 'Anton-Regular', Impact, sans-serif;
+  font-weight: 400;
+  color: #FFD600;
+  background-color: transparent;
+  text-shadow:
+    8px 0 0 #000000,
+    -8px 0 0 #000000,
+    0 8px 0 #000000,
+    0 -8px 0 #000000,
+    6px 6px 0 #000000,
+    -6px -6px 0 #000000,
+    6px -6px 0 #000000,
+    -6px 6px 0 #000000;
+}
+
+.hook-style-neon_glow #hook-text {
+  font-family: 'Montserrat-ExtraBold', sans-serif;
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: rgba(10, 10, 15, 0.88);
+  padding: 16px 34px;
+  border-radius: 20px;
+  border: 2px solid #00F0FF;
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.65), inset 0 0 15px rgba(0, 240, 255, 0.25);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+}
+
+/* --- Animated Subtitles Layer --- */
+#subtitles-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Subtitle Positions */
+.subtitles-pos-top {
+  top: 12%;
+  bottom: auto;
+}
+
+.subtitles-pos-middle {
+  top: 45%;
+  bottom: auto;
+}
+
+.subtitles-pos-bottom {
+  bottom: 10%;
+  top: auto;
+}
+
+.subtitle-block {
+  text-align: center;
+  max-width: 85%;
+  display: none;
+  line-height: 1.35;
+}
+
+.subtitle-block.active {
+  display: block;
+}
+
+.word-span {
+  display: inline-block;
+  transform-origin: center center;
+  will-change: transform, color, opacity, background-color, text-shadow;
+  transition: none;
+}
+
+.word-span.hidden {
+  visibility: hidden;
+}
+
+/* Right-to-Left script support */
+[dir="rtl"] {
+  direction: rtl;
+}

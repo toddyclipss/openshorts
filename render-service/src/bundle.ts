@@ -5,10 +5,15 @@ let bundleLocation: string | null = null;
 
 /**
  * Bundles the Remotion project on startup and caches the result.
- * Uses REMOTION_BUNDLE_PATH env var to locate the remotion source
- * (default: "../remotion" relative to this service's root).
+ * Skipped if RENDER_ENGINE is "hyperframes" (or not "remotion").
  */
 export async function initBundle(): Promise<void> {
+  const engine = (process.env.RENDER_ENGINE || "hyperframes").toLowerCase();
+  if (engine !== "remotion") {
+    console.log(`[bundle] Skipping Remotion bundling on boot (RENDER_ENGINE=${engine})`);
+    return;
+  }
+
   const remotionRoot = process.env.REMOTION_BUNDLE_PATH
     ? path.resolve(process.env.REMOTION_BUNDLE_PATH)
     : path.resolve(import.meta.dirname, "../../remotion");

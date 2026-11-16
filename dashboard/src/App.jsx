@@ -10,6 +10,7 @@ import ThumbnailStudio from './components/ThumbnailStudio';
 import ScheduleWeekModal from './components/ScheduleWeekModal';
 import ClipEditor from './components/ClipEditor';
 import ReframeEditor from './components/ReframeEditor';
+import HyperFramesEditorView from './components/HyperFramesEditorView';
 import UsageMeter from './components/UsageMeter';
 import TopUpModal from './components/TopUpModal';
 import WatermarkModal, { watermarkNoticeDismissed } from './components/WatermarkModal';
@@ -397,6 +398,7 @@ function App() {
   // Clip editor overlay: index of the clip being edited, or null.
   const [editingClip, setEditingClip] = useState(null);
   const [reframingClip, setReframingClip] = useState(null);
+  const [hyperFramesEditingClip, setHyperFramesEditingClip] = useState(null);
 
   // Silent-success "saved" states for the settings key inputs (design.md: no alert popups)
   const [elevenLabsSaved, setElevenLabsSaved] = useState(false);
@@ -845,6 +847,37 @@ function App() {
             setStatus('complete');
             clearInterval(interval);
             refreshMe();
+
+            // Auto-advance: auto-enhance top viral clip with HyperFrames AI Director
+            const clips = data.result?.clips || [];
+            if (clips.length > 0) {
+              const best = clips
+                .map((clip, index) => ({ clip, index }))
+                .sort((a, b) => {
+                  const sa = Number.isFinite(a.clip?.predicted_score) ? a.clip.predicted_score : -1;
+                  const sb = Number.isFinite(b.clip?.predicted_score) ? b.clip.predicted_score : -1;
+                  return sb - sa || a.index - b.index;
+                })[0];
+              if (best && (best.clip?.predicted_score >= 70 || !best.clip?.predicted_score)) {
+                apiFetch('/api/hyperframes/auto-edit', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ job_id: jobId, clip_index: best.index })
+                }).then(res => res.ok ? res.json() : null).then(resData => {
+                  if (resData?.props) {
+                    setResults(prev => {
+                      if (!prev?.clips) return prev;
+                      const updatedClips = [...prev.clips];
+                      updatedClips[best.index] = {
+                        ...updatedClips[best.index],
+                        hyperframes_props: resData.props
+                      };
+                      return { ...prev, clips: updatedClips };
+                    });
+                  }
+                }).catch(err => console.warn('Auto-enhancement non-fatal error:', err));
+              }
+            }
           } else if (data.status === 'failed') {
             setStatus('error');
             const errorMsg = data.error || (data.logs && data.logs.length > 0 ? data.logs[data.logs.length - 1] : "Process failed");
@@ -2436,6 +2469,7 @@ function App() {
                           jobId={jobId}
                           onEditClip={(index) => setEditingClip(index)}
                           onReframeClip={(index) => setReframingClip(index)}
+                          onHyperFramesEdit={(index) => setHyperFramesEditingClip(index)}
                           onUpgrade={isManaged ? openUpsell : null}
                           initialState={projectState?.clips?.find((c) => c.index === i) || null}
                           onStateChange={handleClipStateChange}
@@ -2630,6 +2664,28 @@ function App() {
           clipTitle={results.clips[reframingClip].video_title_for_youtube_short || ''}
           onClose={() => setReframingClip(null)}
           onReframed={handleClipRerendered}
+        />
+      )}
+      {hyperFramesEditingClip !== null && results?.clips?.[hyperFramesEditingClip] && (
+        <HyperFramesEditorView
+          jobId={jobId}
+          index={hyperFramesEditingClip}
+          clip={results.clips[hyperFramesEditingClip]}
+          initialProps={results.clips[hyperFramesEditingClip]?.hyperframes_props}
+          onClose={() => setHyperFramesEditingClip(null)}
+          onSave={(newProps) => {
+            setResults(prev => {
+              if (!prev?.clips) return prev;
+              const clips = [...prev.clips];
+              clips[hyperFramesEditingClip] = {
+                ...clips[hyperFramesEditingClip],
+                hyperframes_props: newProps
+              };
+              return { ...prev, clips };
+            });
+          }}
+          isManaged={isManaged}
+          geminiApiKey={apiKey}
         />
       )}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} queued={typeof peekPendingJob()?.data?.payload === 'string'} />}

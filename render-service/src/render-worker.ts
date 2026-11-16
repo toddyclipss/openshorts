@@ -3,6 +3,7 @@ import path from "node:path";
 import { selectComposition, renderMedia } from "@remotion/renderer";
 import { getBundleLocation } from "./bundle.js";
 import { renderJobs } from "./server.js";
+import { executeHyperFramesRender } from "./hyperframes-worker.js";
 
 export interface RenderParams {
   renderId: string;
@@ -21,10 +22,18 @@ export interface RenderParams {
 }
 
 /**
- * Executes a Remotion render in the background.
- * Updates the in-memory render job map with progress and final status.
+ * Executes a render in the background using either HyperFrames (default) or Remotion.
+ * Switchable via RENDER_ENGINE environment variable ("hyperframes" | "remotion").
  */
 export async function executeRender(params: RenderParams): Promise<void> {
+  const engine = (process.env.RENDER_ENGINE || "hyperframes").toLowerCase();
+
+  if (engine !== "remotion") {
+    console.log(`[render-worker] Dispatching to HyperFrames engine for render ${params.renderId}`);
+    return executeHyperFramesRender(params);
+  }
+
+  // --- Remotion Legacy Path ---
   const { renderId, jobId, clipIndex, props } = params;
   const job = renderJobs.get(renderId);
 
@@ -38,7 +47,7 @@ export async function executeRender(params: RenderParams): Promise<void> {
     job.progress = 0;
 
     console.log(
-      `[render-worker] Starting render ${renderId} (job=${jobId}, clip=${clipIndex})`
+      `[render-worker] Starting Remotion render ${renderId} (job=${jobId}, clip=${clipIndex})`
     );
 
     const bundleLocation = getBundleLocation();

@@ -10,6 +10,7 @@ import { readPendingPlan } from './lib/pendingPlan'
 import { track } from './lib/analytics'
 import { applyConsent } from './lib/consent'
 import CookieBanner from './components/CookieBanner'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const App = lazy(() => import('./App.jsx'))
 const Legal = lazy(() => import('./Legal.jsx'))
@@ -149,11 +150,13 @@ applyConsent();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center text-muted text-sm lowercase">loading…</div>}>
-        <Root />
-      </Suspense>
-      <CookieBanner />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center text-muted text-sm lowercase">loading…</div>}>
+          <Root />
+        </Suspense>
+        <CookieBanner />
+      </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

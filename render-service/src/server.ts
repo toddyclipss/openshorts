@@ -1,4 +1,5 @@
 import express from "express";
+import path from "node:path";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { initBundle } from "./bundle.js";
@@ -46,9 +47,11 @@ app.use(express.json({ limit: "10mb" }));
 
 const PORT = parseInt(process.env.PORT || "3100", 10);
 const OUTPUT_DIR = process.env.OUTPUT_DIR || "/output";
+const TEMPLATES_DIR = process.env.TEMPLATES_DIR || path.resolve(import.meta.dirname, "../../templates");
 
-// Serve video files from the shared output volume so Remotion can access them via HTTP
+// Serve video files from the shared output volume so renderers can access them via HTTP
 app.use("/output", express.static(OUTPUT_DIR));
+app.use("/templates", express.static(TEMPLATES_DIR));
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -152,9 +155,14 @@ app.get("/render/:renderId", (req, res) => {
 // --- Start server ---
 
 async function main() {
-  console.log("[render-service] Initializing Remotion bundle...");
-  await initBundle();
-  console.log("[render-service] Bundle ready.");
+  const engine = (process.env.RENDER_ENGINE || "hyperframes").toLowerCase();
+  console.log(`[render-service] Active render engine: ${engine}`);
+
+  if (engine === "remotion") {
+    console.log("[render-service] Initializing Remotion bundle...");
+    await initBundle();
+    console.log("[render-service] Bundle ready.");
+  }
 
   app.listen(PORT, () => {
     console.log(`[render-service] Listening on port ${PORT}`);
