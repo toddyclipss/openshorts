@@ -74,6 +74,23 @@ export default function HyperFramesEditorView({
 
     const videoRef = useRef(null);
 
+    // Keep props in sync when initialProps updates (e.g. background Gemini auto-edit resolves)
+    useEffect(() => {
+        if (initialProps) {
+            setProps(initialProps);
+        }
+    }, [initialProps]);
+
+    // Pristine clean video URL (strips burned subtitle, hook, or watermark prefixes)
+    const cleanVideoUrl = useMemo(() => {
+        const raw = clip?.video_url || props.videoUrl || '';
+        if (!raw) return '';
+        let f = raw.split('/').pop() || '';
+        let prev;
+        do { prev = f; f = f.replace(/^(?:subtitled_\d+_|hooked_\d+_|hook_|wm_)/, ''); } while (f !== prev);
+        return raw.replace(/[^/]+$/, f);
+    }, [clip?.video_url, props.videoUrl]);
+
     // Fetch word-level captions if not present
     useEffect(() => {
         if ((!props.subtitles?.captions || props.subtitles.captions.length === 0) && jobId && index !== undefined) {
@@ -220,7 +237,7 @@ export default function HyperFramesEditorView({
                     clipIndex: index,
                     props: {
                         ...props,
-                        videoUrl: clip?.video_url || props.videoUrl,
+                        videoUrl: cleanVideoUrl || clip?.video_url || props.videoUrl,
                     },
                 }),
             });
@@ -329,7 +346,7 @@ export default function HyperFramesEditorView({
                         >
                             <video
                                 ref={videoRef}
-                                src={clip?.video_url}
+                                src={cleanVideoUrl || clip?.video_url}
                                 className="w-full h-full object-cover"
                                 playsInline
                                 onTimeUpdate={handleTimeUpdate}

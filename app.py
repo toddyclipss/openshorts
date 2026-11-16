@@ -7495,14 +7495,24 @@ async def hyperframes_auto_edit(
         output_dir = os.path.join(OUTPUT_DIR, req.job_id)
         if req.input_filename:
             safe_name = os.path.basename(req.input_filename)
-            input_path = os.path.join(output_dir, safe_name)
-            filename = safe_name
+            raw_filename = safe_name
         else:
             if req.clip_index >= len(job['result']['clips']):
                 raise HTTPException(status_code=404, detail="Clip not found")
             clip = job['result']['clips'][req.clip_index]
-            filename = clip['video_url'].split('/')[-1]
-            input_path = os.path.join(output_dir, filename)
+            raw_filename = clip['video_url'].split('/')[-1]
+
+        # Strip burned captions, hooks, and watermark to obtain the pristine clean base clip
+        clean_filename = _strip_burned_captions(output_dir, raw_filename, materialize=False)
+        clean_filename = _strip_burned_hook(output_dir, clean_filename)
+        clean_filename = _strip_watermark_copy(output_dir, clean_filename)
+
+        if os.path.exists(os.path.join(output_dir, clean_filename)):
+            filename = clean_filename
+        else:
+            filename = raw_filename
+
+        input_path = os.path.join(output_dir, filename)
 
         if not os.path.exists(input_path):
             raise HTTPException(status_code=404, detail=f"Video file not found: {input_path}")

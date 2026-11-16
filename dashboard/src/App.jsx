@@ -858,7 +858,10 @@ function App() {
                   const sb = Number.isFinite(b.clip?.predicted_score) ? b.clip.predicted_score : -1;
                   return sb - sa || a.index - b.index;
                 })[0];
-              if (best && (best.clip?.predicted_score >= 70 || !best.clip?.predicted_score)) {
+              if (best) {
+                // Automatically transition to the HyperFrames director studio for the top viral clip
+                setHyperFramesEditingClip(best.index);
+
                 apiFetch('/api/hyperframes/auto-edit', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
