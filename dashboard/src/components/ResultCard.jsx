@@ -90,11 +90,12 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
     // subtitled file (double-subtitle bug).
     const stripBurns = (filename) => {
         let f = filename || '', prev;
-        do { prev = f; f = f.replace(/^subtitled_\d+_/, '').replace(/^hooked_\d+_/, '').replace(/^hook_/, ''); } while (f !== prev);
+        do { prev = f; f = f.replace(/^(?:subtitled_\d+_|hooked_\d+_|hook_|wm_)/, ''); } while (f !== prev);
         return f;
     };
     const originalVideoUrl = getApiUrl((clip.video_url || '').replace(/[^/]+$/, stripBurns((clip.video_url || '').split('/').pop())));
     const [currentVideoUrl, setCurrentVideoUrl] = useState(getApiUrl(clip.video_url));
+    const [showCleanBase, setShowCleanBase] = useState(true);
     // Where the <video> element pulls its bytes from. The clips are archived to
     // R2 anyway, and R2 egress is free and edge-served, while /videos is served
     // by the same single-worker API process that is running the renders. So play
@@ -782,9 +783,12 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
 
     // Browser-rendered previews (Remotion) live in a blob: URL that exists only
     // in this tab, so they always win over the durable copy.
-    const playbackUrl = (durableSrc && !durableFailed && !String(currentVideoUrl || '').startsWith('blob:'))
-        ? durableSrc
-        : currentVideoUrl;
+    // When showCleanBase is active, we prioritize originalVideoUrl so legacy clips show without burned captions/hook.
+    const playbackUrl = (showCleanBase && originalVideoUrl && hasServerBurns)
+        ? originalVideoUrl
+        : ((durableSrc && !durableFailed && !String(currentVideoUrl || '').startsWith('blob:'))
+            ? durableSrc
+            : currentVideoUrl);
 
     const durationReadout = formatDuration(clip);
 
@@ -796,6 +800,17 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 Capping the height and centring keeps the whole card scannable
                 without letterboxing the clip. */}
             <div className="w-full max-w-[calc(64vh*0.5625)] md:max-w-none mx-auto md:mx-0 md:w-[236px] bg-black relative shrink-0 aspect-[9/16] md:aspect-auto group/video">
+                {hasServerBurns && (
+                    <button
+                        type="button"
+                        onClick={() => setShowCleanBase(!showCleanBase)}
+                        className="absolute top-2 right-2 z-20 bg-black/80 hover:bg-black text-[10px] font-mono uppercase px-2 py-1 rounded text-white/90 hover:text-white border border-white/20 transition-all flex items-center gap-1 shadow cursor-pointer"
+                        title="Alternar entre o vídeo base limpo e a versão legada com texto queimado"
+                    >
+                        <Sparkles size={10} className="text-brass" />
+                        {showCleanBase ? 'Clean video' : 'Burned version'}
+                    </button>
+                )}
                 <video
                     ref={videoRef}
                     src={playbackUrl}
