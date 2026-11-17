@@ -50,6 +50,8 @@ async function run() {
       hasTimeline: !!(window.__timelines && window.__timelines['root']),
       hookText: document.getElementById('hook-text')?.textContent,
       wordsCount: document.querySelectorAll('.word-span').length,
+      stickersCount: document.querySelectorAll('.viral-sticker').length,
+      hasRetentionBar: !!document.getElementById('retention-bar'),
       duration: window.__timelines?.root?.duration()
     })`,
     returnByValue: true
@@ -97,6 +99,8 @@ async function run() {
     eval1.result.value.hasGsap &&
     eval1.result.value.hasTimeline &&
     eval1.result.value.wordsCount > 0 &&
+    eval1.result.value.stickersCount > 0 &&
+    eval1.result.value.hasRetentionBar &&
     eval2.result.value.time === 2
   ) {
     console.log('\n[PASS] HyperFrames short-video template is completely valid and functional!');

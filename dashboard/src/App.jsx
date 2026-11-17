@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Upload, Sparkles, Youtube, Instagram, Share2, ChevronDown, Check, Activity, LayoutDashboard, Settings, Plus, History, X, Terminal, Shield, LayoutGrid, Image, Globe, RotateCcw, Calendar, AlertTriangle, KeyRound, Bot, Users, Smartphone, ExternalLink, Copy, CheckCircle2, Mail, Loader2, Download, Menu, Lock, Rocket } from 'lucide-react';
 import KeyInput from './components/KeyInput';
+import OpenRouterKeyInput from './components/OpenRouterKeyInput';
 import MediaInput from './components/MediaInput';
 import McpConnectCard from './components/McpConnectCard';
 import ResultCard from './components/ResultCard';
@@ -311,6 +312,8 @@ function App() {
   const [durableClips, setDurableClips] = useState({});
 
   const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_key') || '');
+  const [openrouterKey, setOpenrouterKey] = useState(() => localStorage.getItem('openrouter_key') || '');
+  const [openrouterModel, setOpenrouterModel] = useState(() => localStorage.getItem('openrouter_model') || '');
   // Social API State - Load encrypted or plain
   const [uploadPostKey, setUploadPostKey] = useState(() => {
     const stored = localStorage.getItem('uploadPostKey_v3');
@@ -756,6 +759,16 @@ function App() {
   }, [apiKey]);
 
   useEffect(() => {
+    if (openrouterKey) localStorage.setItem('openrouter_key', openrouterKey);
+    else localStorage.removeItem('openrouter_key');
+  }, [openrouterKey]);
+
+  useEffect(() => {
+    if (openrouterModel) localStorage.setItem('openrouter_model', openrouterModel);
+    else localStorage.removeItem('openrouter_model');
+  }, [openrouterModel]);
+
+  useEffect(() => {
     if (uploadPostKey) {
       localStorage.setItem('uploadPostKey_v3', encrypt(uploadPostKey));
     }
@@ -859,11 +872,12 @@ function App() {
                   return sb - sa || a.index - b.index;
                 })[0];
               if (best) {
-                // Automatically transition to the HyperFrames director studio for the top viral clip
-                setHyperFramesEditingClip(best.index);
-
-                const geminiKey = apiKey || localStorage.getItem('gemini_key');
+                // OaaS Model: Do not pop up the studio modal over the user's screen.
+                // Keep HyperFrames in background and deliver the ready outcome on the card.
                 const reqHeaders = { 'Content-Type': 'application/json' };
+                if (openrouterKey) reqHeaders['X-OpenRouter-Key'] = openrouterKey;
+                if (openrouterModel) reqHeaders['X-OpenRouter-Model'] = openrouterModel;
+                const geminiKey = apiKey || localStorage.getItem('gemini_key');
                 if (geminiKey) reqHeaders['X-Gemini-Key'] = geminiKey;
 
                 apiFetch('/api/hyperframes/auto-edit', {
@@ -877,7 +891,8 @@ function App() {
                       const updatedClips = [...prev.clips];
                       updatedClips[best.index] = {
                         ...updatedClips[best.index],
-                        hyperframes_props: resData.props
+                        hyperframes_props: resData.props,
+                        hyperframes_ready: true,
                       };
                       return { ...prev, clips: updatedClips };
                     });
@@ -947,7 +962,7 @@ function App() {
   // `keysMissing` now means "self-host BYOK keys missing" — it never fires on hosted.
   // A self-hosted server running the moment picker on a local LLM
   // (LLM_BASE_URL) does not need a Gemini key for the core pipeline.
-  const geminiOk = !!apiKey || !!localLlm;
+  const geminiOk = !!apiKey || !!localLlm || !!openrouterKey;
   const keysMissing = !billingEnabled && (!geminiOk || !uploadPostKey);
   const needsPlan = billingEnabled && !isManaged;   // hosted, signed-out or no active plan/trial
 
@@ -1199,9 +1214,11 @@ function App() {
 
     try {
       let body;
-      // BYOK sends the Gemini header; managed users rely on the bearer token
-      // that apiFetch attaches automatically.
-      const headers = apiKey ? { 'X-Gemini-Key': apiKey } : {};
+      // Pass keys for Gemini and OpenRouter (no hardcoded model)
+      const headers = {};
+      if (apiKey) headers['X-Gemini-Key'] = apiKey;
+      if (openrouterKey) headers['X-OpenRouter-Key'] = openrouterKey;
+      if (openrouterModel) headers['X-OpenRouter-Model'] = openrouterModel;
 
       // Advanced generation controls: only sent when the user set them, so the
       // default request stays byte-identical to the pre-feature one.
@@ -1815,6 +1832,12 @@ function App() {
                 </div>
               ) : (
                 <>
+              <OpenRouterKeyInput
+                openrouterKey={openrouterKey}
+                onKeySet={setOpenrouterKey}
+                openrouterModel={openrouterModel}
+                onModelSet={setOpenrouterModel}
+              />
               <KeyInput onKeySet={setApiKey} savedKey={apiKey} />
 
               <div className="card p-4 sm:p-6 mt-8">
@@ -2144,6 +2167,14 @@ function App() {
                   </p>
                   )}
                 </div>
+
+                <OpenRouterKeyInput
+                  openrouterKey={openrouterKey}
+                  onKeySet={setOpenrouterKey}
+                  openrouterModel={openrouterModel}
+                  onModelSet={setOpenrouterModel}
+                  compact={true}
+                />
 
                 <MediaInput onProcess={handleProcess} isProcessing={status === 'processing'} />
 
@@ -2485,6 +2516,8 @@ function App() {
                           uploadPostKey={uploadPostKey}
                           uploadUserId={uploadUserId}
                           geminiApiKey={apiKey}
+                          openrouterKey={openrouterKey}
+                          openrouterModel={openrouterModel}
                           elevenLabsKey={elevenLabsKey}
                           isManaged={isManaged}
                           connectedPlatforms={(userProfiles.find((p) => p.username === uploadUserId) || userProfiles[0])?.connected ?? null}
@@ -2694,6 +2727,8 @@ function App() {
           }}
           isManaged={isManaged}
           geminiApiKey={apiKey}
+          openrouterKey={openrouterKey}
+          openrouterModel={openrouterModel}
         />
       )}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} queued={typeof peekPendingJob()?.data?.payload === 'string'} />}

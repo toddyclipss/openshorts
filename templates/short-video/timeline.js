@@ -77,6 +77,25 @@
     window.__timelines = window.__timelines || {};
     window.__timelines["root"] = tl;
 
+    // 2.5 Viral Retention Progress Bar
+    const retentionBar = document.getElementById("retention-bar");
+    const retentionWrapper = document.getElementById("retention-bar-wrapper");
+    if (retentionBar && retentionWrapper) {
+      const rConf = props.retentionBar || { enabled: true };
+      if (rConf.enabled !== false) {
+        retentionWrapper.className = `retention-pos-${rConf.position || "top"}`;
+        if (rConf.heightPx) retentionBar.style.height = `${rConf.heightPx}px`;
+        if (rConf.color) retentionBar.style.background = rConf.color;
+        tl.fromTo(retentionBar,
+          { scaleX: 0 },
+          { scaleX: 1, duration: totalDurationSec, ease: "none" },
+          0
+        );
+      } else {
+        retentionWrapper.style.display = "none";
+      }
+    }
+
     // 3. Base Video Setup
     const video = document.getElementById("base-video");
     const videoWrapper = document.getElementById("video-wrapper");
@@ -111,7 +130,32 @@
           duration: transSec,
           ease: ease
         }, startSec);
+
+        // Screen shake for dynamic impact on #screen-shake-wrapper
+        const shakeWrapper = document.getElementById("screen-shake-wrapper") || videoWrapper;
+        if (seg.screenShake && shakeWrapper) {
+          tl.to(shakeWrapper, {
+            x: "+=14",
+            y: "-=10",
+            duration: 0.04,
+            repeat: 5,
+            yoyo: true,
+            ease: "power1.inOut"
+          }, startSec);
+          tl.to(shakeWrapper, { x: 0, y: 0, duration: 0.04 }, startSec + 0.24);
+        }
       });
+    }
+
+    // 4.5 Media Treatment Overlay (Film Grain, Vignette, CRT)
+    const treatmentOverlay = document.getElementById("treatment-overlay");
+    if (treatmentOverlay) {
+      const treatment = props.treatment || (props.effects && props.effects.treatment);
+      if (treatment) {
+        treatmentOverlay.className = `treatment-${treatment}`;
+      } else {
+        treatmentOverlay.className = "";
+      }
     }
 
     // 5. Dynamic Viral Hook Headline
@@ -169,6 +213,62 @@
       tl.set(hookWrapper, { display: "none" }, hookDuration);
     } else if (hookWrapper) {
       hookWrapper.style.display = "none";
+    }
+
+    // 5.5 Floating Emojis, Stickers & Reaction Badges Layer
+    const stickersWrapper = document.getElementById("stickers-wrapper");
+    if (stickersWrapper && Array.isArray(props.stickers)) {
+      stickersWrapper.innerHTML = "";
+      props.stickers.forEach((sticker, sIdx) => {
+        const sEl = document.createElement("div");
+        sEl.className = "viral-sticker";
+        sEl.id = `sticker-${sIdx}`;
+        const posX = (sticker.positionX != null ? sticker.positionX : 0.5) * 1080;
+        const posY = (sticker.positionY != null ? sticker.positionY : 0.35) * 1920;
+        sEl.style.left = `${posX}px`;
+        sEl.style.top = `${posY}px`;
+        sEl.style.transform = "translate(-50%, -50%)";
+
+        if (sticker.emoji) {
+          const emojiSpan = document.createElement("span");
+          emojiSpan.className = "viral-sticker-emoji";
+          emojiSpan.textContent = sticker.emoji;
+          if (sticker.sizePx) emojiSpan.style.fontSize = `${sticker.sizePx}px`;
+          sEl.appendChild(emojiSpan);
+        } else if (sticker.imageUrl) {
+          const img = document.createElement("img");
+          img.src = sticker.imageUrl;
+          img.style.width = `${sticker.sizePx || 120}px`;
+          sEl.appendChild(img);
+        }
+
+        stickersWrapper.appendChild(sEl);
+
+        const startSec = Math.max(0, sticker.startSec || 0);
+        const durSec = sticker.durationSec || 2.0;
+        const anim = sticker.animation || "pop";
+
+        tl.set(sEl, { opacity: 0, scale: 0 }, 0);
+
+        if (anim === "bounce") {
+          tl.fromTo(sEl,
+            { scale: 0.3, y: -40, opacity: 0 },
+            { scale: 1.0, y: 0, opacity: 1, duration: 0.35, ease: "bounce.out" },
+            startSec
+          );
+        } else {
+          tl.fromTo(sEl,
+            { scale: 0.2, opacity: 0 },
+            { scale: 1.25, opacity: 1, duration: 0.25, ease: "back.out(2.2)" },
+            startSec
+          );
+          tl.to(sEl, { scale: 1.0, duration: 0.15 }, startSec + 0.25);
+        }
+
+        const exitStart = Math.max(startSec + 0.2, startSec + durSec - 0.25);
+        tl.to(sEl, { scale: 0.7, opacity: 0, duration: 0.25, ease: "power2.in" }, exitStart);
+        tl.set(sEl, { display: "none" }, startSec + durSec);
+      });
     }
 
     // 6. Animated Word Subtitles (Karaoke / Pop)
@@ -261,6 +361,11 @@
             wordSpan.classList.add("hidden");
           }
 
+          // Check semantic keyword highlights (Hormozi / MrBeast style)
+          const cleanWord = word.text.toLowerCase().replace(/[^a-z0-9$]/g, "");
+          const kwMatch = Array.isArray(props.keywordHighlights) &&
+            props.keywordHighlights.find(k => k.word && cleanWord.includes(k.word.toLowerCase()));
+
           blockEl.appendChild(wordSpan);
 
           const wordStartSec = word.startMs / 1000;
@@ -270,6 +375,13 @@
           // Reveal timing
           if (reveal) {
             tl.set(wordSpan, { visibility: "visible" }, wordStartSec);
+          }
+
+          // Semantic keyword highlight class
+          if (kwMatch) {
+            const semanticClass = `semantic-${kwMatch.color || "yellow"}`;
+            tl.set(wordSpan, { className: `word-span ${semanticClass}` }, wordStartSec);
+            tl.set(wordSpan, { className: "word-span" }, wordStartSec + wordDur);
           }
 
           // Active Word Animation
@@ -326,6 +438,21 @@
         });
 
         subContainer.appendChild(blockEl);
+      });
+    }
+
+    // 7. Audio SFX Bus Layer (mapped for HyperFrames Producer multitrack mixer)
+    const audioBus = document.getElementById("audio-bus");
+    if (audioBus && Array.isArray(props.sfxTrack)) {
+      audioBus.innerHTML = "";
+      props.sfxTrack.forEach((sfx) => {
+        const audioEl = document.createElement("audio");
+        const sfxType = sfx.type || "whoosh";
+        audioEl.src = `./audio/sfx/${sfxType}.mp3`;
+        audioEl.setAttribute("data-start", `${sfx.startSec || 0}s`);
+        audioEl.setAttribute("data-volume", `${sfx.volume != null ? sfx.volume : 0.8}`);
+        audioEl.preload = "auto";
+        audioBus.appendChild(audioEl);
       });
     }
 

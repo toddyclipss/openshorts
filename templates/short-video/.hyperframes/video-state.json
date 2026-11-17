@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "historyId": "1f55007e-24f4-4793-88e6-81174df959f2",
+  "currentRevision": null,
+  "pendingChanges": false,
+  "files": {
+    "fonts/Anton-Regular.ttf": {
+      "hash": "a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\a4\\a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab"
+    },
+    "fonts/Montserrat-ExtraBold.ttf": {
+      "hash": "d3ac6a843d3ba6d5cafd44cf39e437055c8aed7e261010f595f57d3c7b3e2c1b",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\d3\\d3ac6a843d3ba6d5cafd44cf39e437055c8aed7e261010f595f57d3c7b3e2c1b"
+    },
+    "fonts/NotoSerif-Bold.ttf": {
+      "hash": "3b2086a869bcded2aeb4416fc281ceec9d6ce3c06756cda19f8f763636204e7d",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\3b\\3b2086a869bcded2aeb4416fc281ceec9d6ce3c06756cda19f8f763636204e7d"
+    },
+    "hyperframes.json": {
+      "hash": "19fececbf75991d8acd07cb6e4725766c3f48f8bb8ed3b31f567f21239ac8b30",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\19\\19fececbf75991d8acd07cb6e4725766c3f48f8bb8ed3b31f567f21239ac8b30"
+    },
+    "index.html": {
+      "hash": "ccf6c07ca3b7be52567000e2e4809fbb9450846389404c42347d667fd7536f69",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\cc\\ccf6c07ca3b7be52567000e2e4809fbb9450846389404c42347d667fd7536f69"
+    },
+    "styles.css": {
+      "hash": "458c5fccc45c7fe62623d167ca0b4e91e3f0ee76c754e82cf0ab10794ff601a5",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\45\\458c5fccc45c7fe62623d167ca0b4e91e3f0ee76c754e82cf0ab10794ff601a5"
+    },
+    "timeline.js": {
+      "hash": "deb2ef023757499033735065e54fade8703dc7c18d2b4a2313cbd9d9b30bc1aa",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\de\\deb2ef023757499033735065e54fade8703dc7c18d2b4a2313cbd9d9b30bc1aa"
+    },
+    "vendor/gsap.min.js": {
+      "hash": "28033e449a31ebcc396e5be8b13b63152bf03094288fb5867034321927bce087",
+      "content": "C:\\Users\\toddy\\.cache\\hyperframes\\history\\1f55007e-24f4-4793-88e6-81174df959f2\\blobs\\28\\28033e449a31ebcc396e5be8b13b63152bf03094288fb5867034321927bce087"
+    }
+  },
+  "revisions": {},
+  "checks": {
+    "latest": null,
+    "revisions": {},
+    "unversioned": []
+  },
+  "snapshots": {
+    "latest": null,
+    "revisions": {},
+    "unversioned": []
+  },
+  "renders": {
+    "latest": {
+      "id": "b79fde35-059b-404f-a8d1-d2488f1b9abd",
+      "completedAt": 1794873558359,
+      "output": "C:\\Users\\toddy\\Desktop\\openshorts\\output\\test_render.mp4",
+      "status": "completed",
+      "revision": null
+    },
+    "retainedRevisions": []
+  },
+  "pendingArtifactCleanup": []
+}

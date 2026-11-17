@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { apiFetch } from '../lib/api';
-import RemotionPreview from './RemotionPreview';
 import Modal from './ui/Modal';
 import SegmentedControl from './ui/SegmentedControl';
 
@@ -285,16 +284,9 @@ export default function SubtitleModal({ isOpen, onClose, onGenerate, onApplyAll,
                             <Loader2 size={16} className="animate-spin" />
                             <span className="text-sm lowercase">Loading preview...</span>
                         </div>
-                    ) : useRemotionPreview ? (
-                        <RemotionPreview
-                            videoUrl={videoUrl}
-                            durationInSeconds={durationSec}
-                            subtitles={subtitleConfig}
-                            hook={existingHook || null}
-                        />
                     ) : (
                         <>
-                            <video src={videoUrl} className="w-full h-full object-contain opacity-50" muted playsInline />
+                            <video src={videoUrl} className="w-full h-full object-contain" muted autoPlay loop playsInline />
                             <div className={`absolute w-full px-8 text-center transition-all duration-300 pointer-events-none flex flex-col items-center justify-center
                                 ${position === 'top' ? 'top-20' : ''}
                                 ${position === 'middle' ? 'top-0 bottom-0' : ''}

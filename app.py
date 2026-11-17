@@ -5564,16 +5564,12 @@ async def process_endpoint(
     if chosen:
         print(f"[layouts] job={job_id} enabled={sorted(chosen)}")
 
-    # Auto-hook: burn each clip's Gemini hook text during the render. Off by default
-    # so HyperFrames can handle dynamic, animated hooks on clean vertical video.
-    if auto_hook is not None and str(auto_hook).lower() in ("1", "true", "yes"):
-        env["AUTO_HOOK"] = "1"
-        from hooks import HOOK_STYLES
-        if auto_hook_style in HOOK_STYLES:
-            env["AUTO_HOOK_STYLE"] = auto_hook_style
-        print(f"[auto-hook] job={job_id} style={env.get('AUTO_HOOK_STYLE', 'classic')}")
-    else:
-        env["AUTO_HOOK"] = "0"
+    # MANDATORY CLEAN BASE VIDEO INVARIANT:
+    # With HyperFrames handling dynamic, animated hooks, kinetic subtitles, and
+    # camera zooms in DOM/GSAP layers, static FFmpeg hook burning and ASS subtitle
+    # burning are STRICTLY LOCKED TO OFF (0). Base clips are 100% clean and pristine (<base>_clip_<n>.mp4).
+    env["AUTO_HOOK"] = "0"
+    print(f"[clean-video-invariant] job={job_id} AUTO_HOOK=0 locked (clean video for HyperFrames)")
 
     # Manual generation controls (discussion #65): optional clip-count target
     # and duration band, forwarded to the selection prompts via the same env
@@ -5610,15 +5606,10 @@ async def process_endpoint(
     if n_clips is not None or min_secs is not None or max_secs is not None:
         print(f"[gen-controls] job={job_id} clips={n_clips} band={min_secs}-{max_secs}")
 
-    # Captions: with HyperFrames handling animated dynamic subtitles, legacy
-    # static FFmpeg ASS subtitle burning is off by default to keep the base video clean.
-    # Only burn static ASS if explicitly requested with captions="1".
-    if captions is not None and str(captions).lower() in ("1", "true", "yes"):
-        env["AUTO_CAPTIONS"] = "1"
-        print(f"[captions] job={job_id} auto-captions on (legacy burn)")
-    else:
-        env["AUTO_CAPTIONS"] = "0"
-        print(f"[captions] job={job_id} auto-captions off (clean video for HyperFrames)")
+    # MANDATORY CLEAN BASE VIDEO INVARIANT:
+    # Static FFmpeg ASS subtitle burning is STRICTLY LOCKED TO OFF (0).
+    env["AUTO_CAPTIONS"] = "0"
+    print(f"[clean-video-invariant] job={job_id} AUTO_CAPTIONS=0 locked (clean video for HyperFrames)")
 
     input_path = None
     if url:
@@ -7250,13 +7241,94 @@ async def _reframe_locked(req: ReframeRequest, request: Request, job, overrides)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# --- Remotion Render Proxy ---
-RENDER_SERVICE_URL = os.getenv("RENDER_SERVICE_URL", "http://renderer:3100")
+# --- HyperFrames Render Proxy ---
+def _default_render_service_url() -> str:
+    env_url = os.getenv("RENDER_SERVICE_URL")
+    if env_url:
+        return env_url.rstrip("/")
+    if os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER"):
+        return "http://renderer:3100"
+    return "http://localhost:3100"
+
+RENDER_SERVICE_URL = _default_render_service_url()
+_cached_working_render_url: Optional[str] = None
 # render id -> owner user id (None for self-host / BYOK), for the status poll.
 _render_owners: Dict[str, Optional[str]] = {}
 
 RENDER_MAX_FRAMES = int(os.getenv("RENDER_MAX_FRAMES", str(60 * 60 * 5)))  # 5 min at 60 fps
 RENDER_MAX_SIDE = int(os.getenv("RENDER_MAX_SIDE", "2160"))
+
+
+def _get_render_service_candidates() -> List[str]:
+    """Return an ordered list of candidate URLs for the render service."""
+    global _cached_working_render_url
+    candidates: List[str] = []
+    if _cached_working_render_url:
+        candidates.append(_cached_working_render_url)
+
+    configured = (os.getenv("RENDER_SERVICE_URL") or RENDER_SERVICE_URL or "http://localhost:3100").rstrip("/")
+    if configured not in candidates:
+        candidates.append(configured)
+
+    defaults = (
+        ["http://renderer:3100", "http://localhost:3100", "http://127.0.0.1:3100"]
+        if (os.path.exists("/.dockerenv") or os.getenv("IS_DOCKER"))
+        else ["http://localhost:3100", "http://127.0.0.1:3100", "http://renderer:3100"]
+    )
+    for url in defaults:
+        if url not in candidates:
+            candidates.append(url)
+    return candidates
+
+
+async def _call_render_service(
+    method: str,
+    path: str,
+    json_data: Optional[dict] = None,
+    timeout: float = 30.0,
+) -> Any:
+    """Call the render service with automatic fallback between configured URL, localhost:3100 and renderer:3100.
+    Gracefully handles [Errno 11001] getaddrinfo failed, socket.gaierror, ConnectError, etc.
+    """
+    global _cached_working_render_url
+    import httpx
+    import socket
+
+    candidates = _get_render_service_candidates()
+    last_error: Optional[Exception] = None
+
+    for base_url in candidates:
+        url = f"{base_url}{path}"
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                if method.upper() == "POST":
+                    resp = await client.post(url, json=json_data)
+                elif method.upper() == "GET":
+                    resp = await client.get(url)
+                else:
+                    raise ValueError(f"Unsupported HTTP method: {method}")
+
+                resp.raise_for_status()
+                _cached_working_render_url = base_url
+                return resp.json()
+        except (httpx.ConnectError, httpx.NetworkError, socket.gaierror, OSError) as e:
+            last_error = e
+            print(f"[render-proxy] Fallback: {url} failed with {type(e).__name__}: {e}. Trying next candidate...")
+            continue
+        except httpx.HTTPStatusError as e:
+            try:
+                err_detail = e.response.json().get("error") or e.response.text
+            except Exception:
+                err_detail = e.response.text
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"Render service error ({e.response.status_code}): {err_detail}",
+            )
+
+    raise HTTPException(
+        status_code=502,
+        detail=f"Render service unavailable after trying {candidates}: {last_error}",
+    )
 
 
 async def _check_render_body(request, body):
@@ -7295,23 +7367,24 @@ async def _check_render_body(request, body):
 
 @app.post("/api/render")
 async def proxy_render(request: Request):
-    """Proxy render requests to the Node.js Remotion render service."""
+    """Proxy render requests to the Node.js HyperFrames render service."""
     await require_managed_entitlement(request)
-    import httpx
     body = await request.json()
     await _check_render_body(request, body)
     render_minutes = _cloud_config.RENDER_MINUTES if BILLING_ENABLED else 0
     reservation_id = await reserve_managed_action(
         request, render_minutes, str(uuid.uuid4()), "render")
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(f"{RENDER_SERVICE_URL}/render", json=body)
-        result = resp.json()
+        result = await _call_render_service("POST", "/render", json_data=body, timeout=30.0)
         if isinstance(result, dict) and result.get("renderId"):
             _render_owners[str(result["renderId"])] = await _owner_id(request)
         if reservation_id:
             await _metering.commit_reservation(reservation_id)
         return result
+    except HTTPException:
+        if reservation_id:
+            await _metering.release_reservation(reservation_id)
+        raise
     except Exception as e:
         if reservation_id:
             await _metering.release_reservation(reservation_id)
@@ -7319,8 +7392,7 @@ async def proxy_render(request: Request):
 
 @app.get("/api/render/{render_id}")
 async def proxy_render_status(render_id: str, request: Request):
-    """Proxy render status polling to the Node.js Remotion render service."""
-    import httpx
+    """Proxy render status polling to the Node.js HyperFrames render service."""
     # The id goes into the upstream path: ids are uuids, nothing else passes.
     if not re.fullmatch(r"[A-Za-z0-9-]{1,64}", render_id or ""):
         raise HTTPException(status_code=404, detail="Not found")
@@ -7331,12 +7403,19 @@ async def proxy_render_status(render_id: str, request: Request):
         if render_id not in _render_owners:
             raise HTTPException(status_code=404, detail="Not found")
         await _assert_job_owner(request, {"user_id": _render_owners[render_id]})
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(f"{RENDER_SERVICE_URL}/render/{render_id}")
-            return resp.json()
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Render service unavailable: {e}")
+    
+    result = await _call_render_service("GET", f"/render/{render_id}", timeout=10.0)
+    # Normalize outputUrl if it points to a filesystem path under output/<job_id>/<file>
+    if isinstance(result, dict) and result.get("outputUrl"):
+        raw_url = str(result["outputUrl"])
+        if not raw_url.startswith("/videos/") and not raw_url.startswith("http://") and not raw_url.startswith("https://"):
+            norm_path = raw_url.replace("\\", "/")
+            parts = [p for p in norm_path.split("/") if p]
+            if len(parts) >= 2:
+                filename = parts[-1]
+                job_id = parts[-2]
+                result["outputUrl"] = f"/videos/{job_id}/{filename}"
+    return result
 
 
 class EffectsGenerateRequest(BaseModel):
@@ -7465,6 +7544,8 @@ class HyperFramesAutoEditRequest(BaseModel):
     job_id: str
     clip_index: int
     input_filename: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
+    model: Optional[str] = None
 
 
 @app.post("/api/hyperframes/auto-edit")
@@ -7473,10 +7554,32 @@ async def hyperframes_auto_edit(
     request: Request,
 ):
     """Generate complete structured HyperFrames viral video props (hook headline,
-    karaoke subtitles, and camera zooms) via Gemini AI, and persist them into the job."""
-    final_api_key = await resolve_gemini(request)
-    if not final_api_key:
-        raise gemini_missing_error()
+    kinetic subtitles, camera zooms, sfx, stickers, retention bar) via OpenRouter AI,
+    and persist them into the job. Strictly zero mocks and zero hardcoded models."""
+    req_key = req.openrouter_api_key or request.headers.get("X-OpenRouter-Key") or os.getenv("OPENROUTER_API_KEY")
+    if not req_key:
+        auth_hdr = request.headers.get("Authorization", "")
+        if auth_hdr.startswith("Bearer sk-or-"):
+            req_key = auth_hdr[7:].strip()
+
+    req_model = req.model or request.headers.get("X-OpenRouter-Model") or os.getenv("OPENROUTER_MODEL")
+
+    if not req_key:
+        final_api_key = await resolve_gemini(request)
+        if not final_api_key:
+            raise HTTPException(
+                status_code=400,
+                detail="OpenRouter API Key is required. Please set OPENROUTER_API_KEY or provide it in the request. No mock or fallback key is permitted.",
+            )
+        is_openrouter = False
+    else:
+        if not req_model or not req_model.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="OpenRouter model is required. Please specify any valid OpenRouter model slug (e.g. 'google/gemini-2.5-flash', 'anthropic/claude-3.5-sonnet', 'openai/gpt-4o') in the request, in header 'X-OpenRouter-Model', or set OPENROUTER_MODEL. No model is pre-configured.",
+            )
+        is_openrouter = True
+        final_api_key = None
 
     await require_managed_entitlement(request)
     await _ensure_job_files(req.job_id, request)
@@ -7592,14 +7695,11 @@ async def hyperframes_auto_edit(
                         })
 
         def run_generation():
-            editor = VideoEditor(api_key=final_api_key)
-            safe_filename = f"temp_hf_auto_{req.job_id}.mp4"
-            safe_input_path = os.path.join(output_dir, safe_filename)
-            shutil.copy(input_path, safe_input_path)
-            try:
-                vid_file = editor.upload_video(safe_input_path)
-                props = editor.get_viral_hyperframes_props(
-                    vid_file,
+            if is_openrouter:
+                from editor import OpenRouterClient
+                or_client = OpenRouterClient(api_key=req_key, model=req_model)
+                props = VideoEditor.get_openrouter_director_plan(
+                    openrouter_client=or_client,
                     duration=duration,
                     fps=fps,
                     width=width,
@@ -7611,11 +7711,31 @@ async def hyperframes_auto_edit(
                     captions=captions,
                 )
                 return props
-            finally:
-                if 'vid_file' in locals() and vid_file:
-                    editor.delete_uploaded(vid_file)
-                if os.path.exists(safe_input_path):
-                    os.remove(safe_input_path)
+            else:
+                editor = VideoEditor(api_key=final_api_key)
+                safe_filename = f"temp_hf_auto_{req.job_id}.mp4"
+                safe_input_path = os.path.join(output_dir, safe_filename)
+                shutil.copy(input_path, safe_input_path)
+                try:
+                    vid_file = editor.upload_video(safe_input_path)
+                    props = editor.get_viral_hyperframes_props(
+                        vid_file,
+                        duration=duration,
+                        fps=fps,
+                        width=width,
+                        height=height,
+                        transcript=transcript,
+                        predicted_score=predicted_score,
+                        viral_hook_text=viral_hook_text,
+                        why=why,
+                        captions=captions,
+                    )
+                    return props
+                finally:
+                    if 'vid_file' in locals() and vid_file:
+                        editor.delete_uploaded(vid_file)
+                    if os.path.exists(safe_input_path):
+                        os.remove(safe_input_path)
 
         loop = asyncio.get_event_loop()
         hyperframes_props = await loop.run_in_executor(None, run_generation)

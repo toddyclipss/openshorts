@@ -61,6 +61,33 @@ html, body {
   z-index: 1;
 }
 
+#screen-shake-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+
+#treatment-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+
+.treatment-vignette {
+  display: block !important;
+  background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.treatment-dramatic {
+  display: block !important;
+  background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.75) 100%);
+}
+
 #video-wrapper {
   position: absolute;
   top: 0;
@@ -284,3 +311,87 @@ html, body {
 [dir="rtl"] {
   direction: rtl;
 }
+
+/* --- Viral Retention Progress Bar --- */
+#retention-bar-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.retention-pos-top {
+  top: 0;
+}
+
+.retention-pos-bottom {
+  bottom: 0;
+}
+
+#retention-bar {
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, #FFE600, #FF0055, #00F0FF);
+  transform-origin: left center;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+/* --- Floating Stickers, Emojis & Reaction Badges --- */
+#stickers-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  pointer-events: none;
+  z-index: 35;
+  overflow: hidden;
+}
+
+.viral-sticker {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  user-select: none;
+}
+
+.viral-sticker-emoji {
+  font-size: 120px;
+  line-height: 1;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+}
+
+/* --- Semantic Word Color Highlights (Hormozi / MrBeast style) --- */
+.word-span.semantic-green {
+  color: #00FF66 !important;
+  text-shadow: 0 0 18px rgba(0, 255, 102, 0.85),
+    4px 0 0 #000, -4px 0 0 #000, 0 4px 0 #000, 0 -4px 0 #000,
+    3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000 !important;
+}
+
+.word-span.semantic-yellow {
+  color: #FFE600 !important;
+  text-shadow: 0 0 18px rgba(255, 230, 0, 0.85),
+    4px 0 0 #000, -4px 0 0 #000, 0 4px 0 #000, 0 -4px 0 #000,
+    3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000 !important;
+}
+
+.word-span.semantic-red {
+  color: #FF2A55 !important;
+  text-shadow: 0 0 18px rgba(255, 42, 85, 0.85),
+    4px 0 0 #000, -4px 0 0 #000, 0 4px 0 #000, 0 -4px 0 #000,
+    3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000 !important;
+}
+
+.word-span.semantic-cyan {
+  color: #00F0FF !important;
+  text-shadow: 0 0 18px rgba(0, 240, 255, 0.85),
+    4px 0 0 #000, -4px 0 0 #000, 0 4px 0 #000, 0 -4px 0 #000,
+    3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000 !important;
+}
+

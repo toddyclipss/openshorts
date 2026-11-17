@@ -51,15 +51,19 @@ export async function executeHyperFramesRender(params: RenderParams): Promise<vo
 
     const fps = props.fps || 30;
 
-    // Execute hyperframes render CLI
+    // Execute hyperframes render CLI with Windows-safe path handling
+    const safeTemplateDir = `"${templateDir}"`;
+    const safeOutputLocation = `"${outputLocation}"`;
+    const safePropsFilePath = `"${propsFilePath}"`;
+
     const args = [
       "hyperframes",
       "render",
-      templateDir,
-      "--output", outputLocation,
+      safeTemplateDir,
+      "--output", safeOutputLocation,
       "--fps", String(fps),
       "--format", "mp4",
-      "--variables-file", propsFilePath
+      "--variables-file", safePropsFilePath
     ];
 
     await new Promise<void>((resolve, reject) => {
@@ -105,8 +109,9 @@ export async function executeHyperFramesRender(params: RenderParams): Promise<vo
 
     job.status = "done";
     job.progress = 100;
-    job.outputUrl = outputLocation;
-    console.log(`[hyperframes-worker] Render ${renderId} successfully completed: ${outputLocation}`);
+    // Return relative /videos/ URL so browser client can download directly via FastAPI
+    job.outputUrl = `/videos/${jobId}/${outputFileName}`;
+    console.log(`[hyperframes-worker] Render ${renderId} successfully completed: ${job.outputUrl} (${outputLocation})`);
   } catch (err) {
     job.status = "error";
     job.error = err instanceof Error ? err.message : String(err);

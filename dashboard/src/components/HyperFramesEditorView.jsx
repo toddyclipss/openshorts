@@ -20,6 +20,8 @@ export default function HyperFramesEditorView({
     onSave,
     isManaged,
     geminiApiKey,
+    openrouterKey,
+    openrouterModel,
 }) {
     const [props, setProps] = useState(initialProps || {
         videoUrl: clip?.video_url || '',
@@ -187,13 +189,17 @@ export default function HyperFramesEditorView({
         return currentTime <= (props.hook.displayDurationSec || 3.5);
     }, [props.hook, currentTime]);
 
-    // AI Re-generation via Gemini
+    // AI Re-generation via OpenRouter / Gemini
     const handleReGenerateAI = async () => {
         setIsGenerating(true);
         setRenderError(null);
         try {
+            const orKey = openrouterKey || localStorage.getItem('openrouter_key');
+            const orModel = openrouterModel || localStorage.getItem('openrouter_model');
             const apiKey = geminiApiKey || localStorage.getItem('gemini_key');
             const headers = { 'Content-Type': 'application/json' };
+            if (orKey) headers['X-OpenRouter-Key'] = orKey;
+            if (orModel) headers['X-OpenRouter-Model'] = orModel;
             if (apiKey) headers['X-Gemini-Key'] = apiKey;
 
             const res = await apiFetch('/api/hyperframes/auto-edit', {
@@ -207,7 +213,7 @@ export default function HyperFramesEditorView({
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.detail || 'Failed to auto-edit with Gemini');
+                throw new Error(errData.detail || 'Failed to auto-edit with AI Video Director');
             }
 
             const data = await res.json();

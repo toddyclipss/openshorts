@@ -10,12 +10,24 @@
 </head>
 <body>
   <div id="root" data-composition-id="root" data-width="1080" data-height="1920">
-    <!-- Base Video Layer & Camera Transforms -->
+    <!-- Base Video Layer & Dynamic Camera Transforms (Zooms, Pans, Shakes) -->
     <div id="video-container">
-      <div id="video-wrapper">
-        <video id="base-video" playsinline muted preload="auto"></video>
+      <div id="screen-shake-wrapper">
+        <div id="video-wrapper">
+          <video id="base-video" playsinline muted preload="auto"></video>
+        </div>
       </div>
+      <!-- Media Treatment Overlay (Film Grain, Vignette, CRT) -->
+      <div id="treatment-overlay"></div>
     </div>
+
+    <!-- Viral Retention Progress Bar Layer -->
+    <div id="retention-bar-wrapper" class="retention-pos-top">
+      <div id="retention-bar"></div>
+    </div>
+
+    <!-- Floating Emojis, Stickers & Reaction Badges Layer -->
+    <div id="stickers-wrapper"></div>
 
     <!-- Dynamic Viral Hook Headline Layer -->
     <div id="hook-wrapper" class="hook-pos-top">
@@ -24,74 +36,127 @@
       </div>
     </div>
 
-    <!-- Animated Subtitles Layer (Karaoke / Pop) -->
+    <!-- Animated Subtitles Layer (Karaoke / Hormozi / Pop) -->
     <div id="subtitles-wrapper" class="subtitles-pos-bottom">
       <div id="subtitles-container"></div>
     </div>
+
+    <!-- Audio & Sound Effects Container (for HyperFrames Producer audio mixer) -->
+    <div id="audio-bus"></div>
   </div>
 
   <!-- HyperFrames Timeline Logic -->
   <script src="./timeline.js"></script>
   <script>
-    // Auto-initialize when props are injected via CDP or default for dev preview
-    document.addEventListener("DOMContentLoaded", async () => {
-      if (window.__COMPOSITION_PROPS__) {
-        await window.initHyperFramesComposition(window.__COMPOSITION_PROPS__);
-      } else {
-        // Fallback demo props for local scrubbing in `npx hyperframes dev`
-        const demoProps = {
-          videoUrl: "",
-          durationInFrames: 150, // 5 seconds @ 30fps
-          fps: 30,
-          width: 1080,
-          height: 1920,
-          hook: {
-            text: "THIS CHANGED EVERYTHING \uD83E\uDD2F",
-            position: "top",
-            size: "M",
-            style: "pill",
-            entranceAnimation: "spring",
-            displayDurationSec: 3.5
-          },
-          subtitles: {
-            position: "bottom",
-            style: {
-              fontFamily: "Montserrat-ExtraBold",
-              fontSize: 72,
-              fontColor: "#FFFFFF",
-              highlightColor: "#FFE600",
-              highlightTextColor: "#000000",
-              borderColor: "#000000",
-              borderWidth: 6,
-              bgColor: "#000000",
-              bgOpacity: 0.0,
-              animation: "karaoke",
-              baseOpacity: 0.4,
-              uppercase: true,
-              reveal: true,
-              shadow: 3
-            },
-            captions: [
-              { text: "THIS", startMs: 200, endMs: 600 },
-              { text: "IS", startMs: 600, endMs: 900 },
-              { text: "THE", startMs: 900, endMs: 1200 },
-              { text: "NEW", startMs: 1200, endMs: 1600 },
-              { text: "WAY", startMs: 1600, endMs: 2000 },
-              { text: "TO", startMs: 2000, endMs: 2300 },
-              { text: "RENDER", startMs: 2300, endMs: 2800 },
-              { text: "VIRAL", startMs: 2800, endMs: 3300 },
-              { text: "VIDEOS", startMs: 3300, endMs: 4000 }
-            ]
-          },
-          effects: {
-            segments: [
-              { startSec: 0, endSec: 1.5, zoom: 1.0, zoomCenterX: 0.5, zoomCenterY: 0.4, brightness: 1.0, contrast: 1.0, saturate: 1.0 },
-              { startSec: 1.5, endSec: 3.5, zoom: 1.25, zoomCenterX: 0.5, zoomCenterY: 0.38, brightness: 1.05, contrast: 1.1, saturate: 1.15, transitionSec: 0.25 },
-              { startSec: 3.5, endSec: 5.0, zoom: 1.05, zoomCenterX: 0.5, zoomCenterY: 0.4, brightness: 1.0, contrast: 1.0, saturate: 1.0, transitionSec: 0.3 }
-            ]
+    /**
+     * Resolve composition props from multiple possible injection sources:
+     * 1. HyperFrames CLI native runtime: window.__hyperframes?.getVariables?.()
+     * 2. Direct CDP in-memory injection: window.__COMPOSITION_PROPS__
+     * 3. URL query parameter: ?variables={...} or ?props={...}
+     * 4. Fallback demo props for local dev scrubbing
+     */
+    async function resolveHyperFramesProps() {
+      // 1. HyperFrames native CLI / engine variables
+      if (typeof window.__hyperframes !== "undefined" && typeof window.__hyperframes.getVariables === "function") {
+        try {
+          const cliVars = window.__hyperframes.getVariables();
+          if (cliVars && typeof cliVars === "object" && Object.keys(cliVars).length > 0) {
+            console.log("[HyperFrames] Loaded variables via window.__hyperframes.getVariables()", cliVars);
+            return cliVars;
           }
-        };
-        await window.initHyperFramesComposition(demoProps);
+        } catch (err) {
+          console.warn("[HyperFrames] Error calling getVariables():", err);
+        }
+      }
+
+      // 2. Direct CDP script injection
+      if (typeof window.__COMPOSITION_PROPS__ !== "undefined" && window.__COMPOSITION_PROPS__) {
+        console.log("[HyperFrames] Loaded props via window.__COMPOSITION_PROPS__", window.__COMPOSITION_PROPS__);
+        return window.__COMPOSITION_PROPS__;
+      }
+
+      // 3. URL query string
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qProps = urlParams.get("variables") || urlParams.get("props");
+        if (qProps) {
+          const parsed = JSON.parse(qProps);
+          console.log("[HyperFrames] Loaded props via URL query params", parsed);
+          return parsed;
+        }
+      } catch (e) {
+        console.warn("[HyperFrames] Failed to parse props from URL query:", e);
+      }
+
+      // 4. Fallback demo props for local authoring
+      return {
+        videoUrl: "",
+        durationInFrames: 150, // 5 seconds @ 30fps
+        fps: 30,
+        width: 1080,
+        height: 1920,
+        retentionBar: {
+          enabled: true,
+          position: "top",
+          heightPx: 10,
+          color: "linear-gradient(90deg, #FFE600, #FF0055, #00F0FF)"
+        },
+        hook: {
+          text: "THIS CHANGED EVERYTHING \uD83E\uDD2F",
+          position: "top",
+          size: "M",
+          style: "pill",
+          entranceAnimation: "spring",
+          displayDurationSec: 3.5
+        },
+        stickers: [
+          { emoji: "\uD83D\uDD25", startSec: 1.2, durationSec: 1.8, positionX: 0.82, positionY: 0.28, sizePx: 140, animation: "pop" },
+          { emoji: "\uD83E\uDD2F", startSec: 3.2, durationSec: 1.6, positionX: 0.18, positionY: 0.35, sizePx: 130, animation: "bounce" }
+        ],
+        subtitles: {
+          position: "bottom",
+          style: {
+            fontFamily: "Montserrat-ExtraBold",
+            fontSize: 72,
+            fontColor: "#FFFFFF",
+            highlightColor: "#FFE600",
+            highlightTextColor: "#000000",
+            borderColor: "#000000",
+            borderWidth: 6,
+            bgColor: "#000000",
+            bgOpacity: 0.0,
+            animation: "karaoke",
+            baseOpacity: 0.4,
+            uppercase: true,
+            reveal: true,
+            shadow: 3
+          },
+          captions: [
+            { text: "THIS", startMs: 200, endMs: 600 },
+            { text: "IS", startMs: 600, endMs: 900 },
+            { text: "THE", startMs: 900, endMs: 1200 },
+            { text: "NEW", startMs: 1200, endMs: 1600 },
+            { text: "WAY", startMs: 1600, endMs: 2000 },
+            { text: "TO", startMs: 2000, endMs: 2300 },
+            { text: "RENDER", startMs: 2300, endMs: 2800 },
+            { text: "VIRAL", startMs: 2800, endMs: 3300 },
+            { text: "VIDEOS", startMs: 3300, endMs: 4000 }
+          ]
+        },
+        effects: {
+          segments: [
+            { startSec: 0, endSec: 1.5, zoom: 1.0, zoomCenterX: 0.5, zoomCenterY: 0.4, brightness: 1.0, contrast: 1.0, saturate: 1.0 },
+            { startSec: 1.5, endSec: 3.5, zoom: 1.25, zoomCenterX: 0.5, zoomCenterY: 0.38, brightness: 1.05, contrast: 1.1, saturate: 1.15, transitionSec: 0.25 },
+            { startSec: 3.5, endSec: 5.0, zoom: 1.05, zoomCenterX: 0.5, zoomCenterY: 0.4, brightness: 1.0, contrast: 1.0, saturate: 1.0, transitionSec: 0.3 }
+          ]
+        }
+      };
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const props = await resolveHyperFramesProps();
+      if (props) {
+        await window.initHyperFramesComposition(props);
       }
     });
   </script>

@@ -3,7 +3,6 @@ import path from "node:path";
 import fs from "node:fs";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { initBundle } from "./bundle.js";
 import { executeRender } from "./render-worker.js";
 
 // --- Render status types ---
@@ -38,7 +37,12 @@ const renderRequestSchema = z.object({
     subtitles: z.any().nullable().optional(),
     hook: z.any().nullable().optional(),
     effects: z.any().nullable().optional(),
-  }),
+    sfxTrack: z.any().nullable().optional(),
+    stickers: z.any().nullable().optional(),
+    retentionBar: z.any().nullable().optional(),
+    keywordHighlights: z.any().nullable().optional(),
+    treatment: z.any().nullable().optional(),
+  }).passthrough(),
 });
 
 // --- Express app ---
@@ -103,14 +107,16 @@ app.post("/render", (req, res) => {
     jobId,
     clipIndex,
     props: {
+      ...props,
       videoUrl: resolvedVideoUrl,
-      durationInFrames: props.durationInFrames,
-      fps: props.fps,
-      width: props.width,
-      height: props.height,
       subtitles: props.subtitles ?? null,
       hook: props.hook ?? null,
       effects: props.effects ?? null,
+      sfxTrack: props.sfxTrack ?? null,
+      stickers: props.stickers ?? null,
+      retentionBar: props.retentionBar ?? null,
+      keywordHighlights: props.keywordHighlights ?? null,
+      treatment: props.treatment ?? null,
     },
   }).catch((err) => {
     console.error(`[render] Unhandled error for ${renderId}:`, err);
@@ -156,15 +162,7 @@ app.get("/render/:renderId", (req, res) => {
 // --- Start server ---
 
 async function main() {
-  const engine = (process.env.RENDER_ENGINE || "hyperframes").toLowerCase();
-  console.log(`[render-service] Active render engine: ${engine}`);
-
-  if (engine === "remotion") {
-    console.log("[render-service] Initializing Remotion bundle...");
-    await initBundle();
-    console.log("[render-service] Bundle ready.");
-  }
-
+  console.log(`[render-service] Engine: HyperFrames (100% native, Remotion fully replaced)`);
   app.listen(PORT, () => {
     console.log(`[render-service] Listening on port ${PORT}`);
   });

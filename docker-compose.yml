@@ -8,6 +8,8 @@ services:
       - .:/app
       - /app/__pycache__
       - ./output:/app/output
+    environment:
+      - RENDER_SERVICE_URL=http://renderer:3100
     restart: unless-stopped
 
   frontend:
@@ -37,7 +39,7 @@ services:
     volumes:
       - ./output:/output
     environment:
-      - REMOTION_BUNDLE_PATH=/app/remotion
+      - RENDER_ENGINE=hyperframes
       - OUTPUT_DIR=/output
       - PORT=3100
     restart: unless-stopped

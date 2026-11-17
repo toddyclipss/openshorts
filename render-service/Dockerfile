@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim
 
-# Install Chromium and FFmpeg for HyperFrames and Remotion rendering
+# Install Chromium and FFmpeg for HyperFrames rendering
 RUN apt-get update && \
     apt-get install -y --no-install-recommends chromium ffmpeg && \
     rm -rf /var/lib/apt/lists/*
@@ -25,13 +25,6 @@ COPY render-service/src/ ./src/
 
 # Copy shared composition templates
 COPY templates/ /app/templates/
-
-# Optional: Copy remotion source for fallback compatibility
-COPY remotion/package.json remotion/package-lock.json /app/remotion/
-COPY remotion/tsconfig.json /app/remotion/tsconfig.json
-COPY remotion/src/ /app/remotion/src/
-COPY remotion/public/ /app/remotion/public/
-RUN cd /app/remotion && npm ci --no-audit --no-fund
 
 # Build TypeScript
 RUN npm run build

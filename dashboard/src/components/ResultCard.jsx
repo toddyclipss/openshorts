@@ -11,7 +11,6 @@ import SegmentedControl from './ui/SegmentedControl';
 import WatermarkModal, { watermarkNoticeDismissed } from './WatermarkModal';
 import TikTokDraftNotice from './TikTokDraftNotice';
 import { useAuth } from '../contexts/AuthContext';
-import { renderInBrowser } from '../lib/renderInBrowser';
 
 const QUIET_BTN = 'group flex flex-col items-center justify-center gap-1 py-2.5 sm:py-2 px-1 rounded-input border border-rule hover:bg-paper3 text-[11px] lowercase text-ink2 whitespace-nowrap transition-colors disabled:opacity-45 disabled:cursor-not-allowed';
 
@@ -63,7 +62,7 @@ function formatDuration(clip) {
     return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
 }
 
-export default function ResultCard({ clip, index, jobId, durable, uploadPostKey, uploadUserId, geminiApiKey, elevenLabsKey, isManaged, onPlay, onPause, onBulkSubtitle, clipCount = 1, bulkProgress, initialState = null, onStateChange, connectedPlatforms = null, onConnectSocials, onEditClip = null, onReframeClip = null, onUpgrade = null, onHyperFramesEdit = null }) {
+export default function ResultCard({ clip, index, jobId, durable, uploadPostKey, uploadUserId, geminiApiKey, openrouterKey = null, openrouterModel = null, elevenLabsKey, isManaged, onPlay, onPause, onBulkSubtitle, clipCount = 1, bulkProgress, initialState = null, onStateChange, connectedPlatforms = null, onConnectSocials, onEditClip = null, onReframeClip = null, onUpgrade = null, onHyperFramesEdit = null }) {
     const [showModal, setShowModal] = useState(false);
     // The "why" line is clamped to two lines so cards in a row stay level;
     // when it overflows, a hover (desktop) or tap (touch) shows the whole
@@ -323,22 +322,23 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
         setIsEditing(true);
         setEditError(null);
         try {
+            const orKey = openrouterKey || localStorage.getItem('openrouter_key');
+            const orModel = openrouterModel || localStorage.getItem('openrouter_model');
             const apiKey = geminiApiKey || localStorage.getItem('gemini_key');
 
-            // Managed (paid) users get the Gemini key resolved server-side;
-            // only BYOK/self-host needs a local key.
-            if (!apiKey && !isManaged) {
-                throw new Error("Gemini API Key is missing. Please set it in Settings.");
+            if (!orKey && !apiKey && !isManaged) {
+                throw new Error("OpenRouter or Gemini API Key is missing. Please configure it.");
             }
-            const geminiHeaders = apiKey ? { 'X-Gemini-Key': apiKey } : {};
 
-            // Try Remotion effects endpoint first
-            const effectsRes = hasServerBurns ? null : await apiFetch('/api/effects/generate', {
+            const headers = { 'Content-Type': 'application/json' };
+            if (orKey) headers['X-OpenRouter-Key'] = orKey;
+            if (orModel) headers['X-OpenRouter-Model'] = orModel;
+            if (apiKey) headers['X-Gemini-Key'] = apiKey;
+
+            // Direct via HyperFrames AI Director (OpenRouter / Gemini)
+            const hfRes = await apiFetch('/api/hyperframes/auto-edit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...geminiHeaders
-                },
+                headers,
                 body: JSON.stringify({
                     job_id: jobId,
                     clip_index: index,
@@ -346,25 +346,16 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 })
             });
 
-            if (effectsRes && effectsRes.ok) {
-                const data = await effectsRes.json();
-                if (data.effects && data.effects.segments) {
-                    const newLayers = { ...activeLayers, effects: data.effects };
-                    setActiveLayers(newLayers);
-                    const blobUrl = await renderInBrowser({
-                        videoUrl: originalVideoUrl,
-                        durationInSeconds: clipDuration,
-                        subtitles: newLayers.subtitles,
-                        hook: newLayers.hook,
-                        effects: newLayers.effects,
-                    });
-                    setCurrentVideoUrl(blobUrl);
-                    if (videoRef.current) videoRef.current.load();
+            if (hfRes && hfRes.ok) {
+                const data = await hfRes.json();
+                if (data.props) {
+                    clip.hyperframes_props = data.props;
+                    clip.hyperframes_ready = true;
                     return;
                 }
             }
 
-            // Fallback: legacy FFmpeg edit endpoint
+            // Fallback: legacy edit endpoint
             const res = await apiFetch('/api/edit', {
                 method: 'POST',
                 headers: {
@@ -426,17 +417,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 setServerVideoFile(data.new_video_url.split('/').pop());
                 const remaining = { ...activeLayers, subtitles: null };
                 setActiveLayers(remaining);
-                if (remaining.hook || remaining.effects) {
-                    setCurrentVideoUrl(await renderInBrowser({
-                        videoUrl: serverUrl,
-                        durationInSeconds: clipDuration,
-                        subtitles: null,
-                        hook: remaining.hook,
-                        effects: remaining.effects,
-                    }));
-                } else {
-                    setCurrentVideoUrl(serverUrl);
-                }
+                setCurrentVideoUrl(serverUrl);
                 if (videoRef.current) videoRef.current.load();
                 setShowSubtitleModal(false);
             }
@@ -452,27 +433,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
         setIsSubtitling(true);
         setEditError(null);
         try {
-            // Karaoke styles are burned server-side (ASS word-highlight render);
-            // the in-browser Remotion path only handles classic styles, and only
-            // when the server file has no burned-in content to preserve.
-            if (options.remotion && options.style !== 'karaoke' && !hasServerBurns) {
-                // Accumulate layer and render all layers together
-                const newLayers = { ...activeLayers, subtitles: options.remotion };
-                setActiveLayers(newLayers);
-                const blobUrl = await renderInBrowser({
-                    videoUrl: originalVideoUrl,
-                    durationInSeconds: clipDuration,
-                    subtitles: newLayers.subtitles,
-                    hook: newLayers.hook,
-                    effects: newLayers.effects,
-                });
-                setCurrentVideoUrl(blobUrl);
-                if (videoRef.current) videoRef.current.load();
-                setShowSubtitleModal(false);
-                return;
-            }
-
-            // Fallback: legacy FFmpeg
+            // Legacy FFmpeg fallback
             const res = await apiFetch('/api/subtitle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -511,20 +472,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 // Subtitles are burned into the server file now — drop the
                 // browser subtitle layer and re-compose any remaining browser
                 // layers (hook/effects) over the new file so they aren't lost.
-                const remaining = { ...activeLayers, subtitles: null };
-                setActiveLayers(remaining);
-                if (remaining.hook || remaining.effects) {
-                    const blobUrl = await renderInBrowser({
-                        videoUrl: serverUrl,
-                        durationInSeconds: clipDuration,
-                        subtitles: null,
-                        hook: remaining.hook,
-                        effects: remaining.effects,
-                    });
-                    setCurrentVideoUrl(blobUrl);
-                } else {
-                    setCurrentVideoUrl(serverUrl);
-                }
+                setCurrentVideoUrl(serverUrl);
                 if (videoRef.current) videoRef.current.load();
                 setShowSubtitleModal(false);
             }
@@ -540,23 +488,6 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
         setIsHooking(true);
         setEditError(null);
         try {
-            if (hookData.remotion && !hasServerBurns) {
-                // Accumulate layer and render all layers together
-                const newLayers = { ...activeLayers, hook: hookData.remotion };
-                setActiveLayers(newLayers);
-                const blobUrl = await renderInBrowser({
-                    videoUrl: originalVideoUrl,
-                    durationInSeconds: clipDuration,
-                    subtitles: newLayers.subtitles,
-                    hook: newLayers.hook,
-                    effects: newLayers.effects,
-                });
-                setCurrentVideoUrl(blobUrl);
-                if (videoRef.current) videoRef.current.load();
-                setShowHookModal(false);
-                return;
-            }
-
             // Fallback: legacy FFmpeg
             const payload = typeof hookData === 'string'
                 ? { text: hookData, position: 'top', size: 'M' }
@@ -872,6 +803,15 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                                 {clip.predicted_score}
                             </b>
                             <span className="text-white/60">/100</span>
+                        </span>
+                    )}
+                    {clip.hyperframes_props && (
+                        <span
+                            className="bg-brass text-black font-mono text-micro uppercase px-2 py-1 rounded-full flex items-center gap-1 font-bold shadow"
+                            title="HyperFrames AI Director: Dynamic zooms, kinetic captions & SFX enabled"
+                        >
+                            <Sparkles size={11} className="shrink-0 text-black" />
+                            <span>AI DIRECTED</span>
                         </span>
                     )}
                 </div>
