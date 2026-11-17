@@ -736,7 +736,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         type="button"
                         onClick={() => setShowCleanBase(!showCleanBase)}
                         className="absolute top-2 right-2 z-20 bg-black/80 hover:bg-black text-[10px] font-mono uppercase px-2 py-1 rounded text-white/90 hover:text-white border border-white/20 transition-all flex items-center gap-1 shadow cursor-pointer"
-                        title="Alternar entre o vídeo base limpo e a versão legada com texto queimado"
+                        title="Toggle between clean base video and legacy version with burned-in text"
                     >
                         <Sparkles size={10} className="text-brass" />
                         {showCleanBase ? 'Clean video' : 'Burned version'}
