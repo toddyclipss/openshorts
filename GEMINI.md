@@ -105,6 +105,9 @@ Processing executes as an isolated child process per job (`main.py`) triggered b
 ## 6. Modular Rules Index
 
 Detailed guidelines are modularized in `.agents/rules/`:
+- [subsystem-hard-rules.md](.agents/rules/subsystem-hard-rules.md) — Subsystem constraints, proxy routing, layout rendering invariants, MCP security, and billing (Claude parity).
 - [language-policy.md](.agents/rules/language-policy.md) — Mandatory English Policy for all code, comments, commits, and docs.
 - [coding-standards.md](.agents/rules/coding-standards.md) — Python 3.11+, strict typing, async patterns, FFmpeg safety, and resource management.
 - [architecture.md](.agents/rules/architecture.md) — Service/worker boundaries, pipeline separation, clean interfaces, and deploy drain patterns.
+
+@[Subsystem Hard Rules](.agents/rules/subsystem-hard-rules.md)
