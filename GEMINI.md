@@ -106,8 +106,10 @@ Processing executes as an isolated child process per job (`main.py`) triggered b
 
 Detailed guidelines are modularized in `.agents/rules/`:
 - [subsystem-hard-rules.md](.agents/rules/subsystem-hard-rules.md) — Subsystem constraints, proxy routing, layout rendering invariants, MCP security, and billing (Claude parity).
+- [oaas-philosophy.md](.agents/rules/oaas-philosophy.md) — Operations as a Service (OaaS) core delivery and autonomous execution principles.
 - [language-policy.md](.agents/rules/language-policy.md) — Mandatory English Policy for all code, comments, commits, and docs.
 - [coding-standards.md](.agents/rules/coding-standards.md) — Python 3.11+, strict typing, async patterns, FFmpeg safety, and resource management.
 - [architecture.md](.agents/rules/architecture.md) — Service/worker boundaries, pipeline separation, clean interfaces, and deploy drain patterns.
 
 @[Subsystem Hard Rules](.agents/rules/subsystem-hard-rules.md)
+@[OaaS Philosophy](.agents/rules/oaas-philosophy.md)
