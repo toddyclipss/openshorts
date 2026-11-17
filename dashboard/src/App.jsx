@@ -345,6 +345,10 @@ function App() {
   });
   const [autopilotOn, setAutopilotOn] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const handleCloseKeyModal = () => {
+    try { localStorage.setItem('os_setup_modal_seen', '1'); } catch (_) {}
+    setShowKeyModal(false);
+  };
   const [jobId, setJobId] = useState(null);
   const [status, setStatus] = useState('idle'); // idle, processing, complete, error
   const [results, setResults] = useState(null);
@@ -960,11 +964,19 @@ function App() {
 
   // Hosted is paid-only (no BYOK core). Self-host uses BYOK keys.
   // `keysMissing` now means "self-host BYOK keys missing" — it never fires on hosted.
-  // A self-hosted server running the moment picker on a local LLM
-  // (LLM_BASE_URL) does not need a Gemini key for the core pipeline.
-  const geminiOk = !!apiKey || !!localLlm || !!openrouterKey;
-  const keysMissing = !billingEnabled && (!geminiOk || !uploadPostKey);
+  const openrouterOk = !!openrouterKey;
+  const geminiOk = openrouterOk;
+  const keysMissing = !billingEnabled && (!openrouterOk || !uploadPostKey);
   const needsPlan = billingEnabled && !isManaged;   // hosted, signed-out or no active plan/trial
+
+  // First-run setup modal for self-hosted instances missing OpenRouter key
+  useEffect(() => {
+    try {
+      if (!billingEnabled && !openrouterKey && !localStorage.getItem('os_setup_modal_seen')) {
+        setShowKeyModal(true);
+      }
+    } catch (_) { /* ignore */ }
+  }, [billingEnabled, openrouterKey]);
 
   // Fresh sign-up: Clip Generator tutorial (AuthContext set os_show_clip_tutorial
   // after the auth redirect). QA: #app?tutorial=1. Resume coach if they refreshed
@@ -1686,10 +1698,10 @@ function App() {
               >
                 <AlertTriangle size={12} />
                 <span className="hidden md:inline">
-                  {!geminiOk && !uploadPostKey
-                    ? 'Gemini & Upload-Post keys missing'
-                    : !geminiOk
-                      ? 'Gemini API Key Missing'
+                  {!openrouterOk && !uploadPostKey
+                    ? 'OpenRouter & Upload-Post keys missing'
+                    : !openrouterOk
+                      ? 'OpenRouter API Key & Model Missing'
                       : 'Upload-Post API Key Missing'}
                 </span>
                 <span className="md:hidden">keys missing</span>
@@ -1706,10 +1718,10 @@ function App() {
               <div className="min-w-0">
                 <span className="font-medium text-ink">Required API keys missing.</span>{' '}
                 <span className="text-muted">
-                  {!geminiOk && !uploadPostKey
-                    ? 'Set your Gemini and Upload-Post API keys to use OpenShorts.'
-                    : !geminiOk
-                      ? 'Set your Gemini API key to use OpenShorts.'
+                  {!openrouterOk && !uploadPostKey
+                    ? 'Set your OpenRouter and Upload-Post API keys to use OpenShorts.'
+                    : !openrouterOk
+                      ? 'Set your OpenRouter API key & model to use OpenShorts.'
                       : 'Set your Upload-Post API key to use OpenShorts.'}
                 </span>
               </div>
@@ -2168,14 +2180,6 @@ function App() {
                   )}
                 </div>
 
-                <OpenRouterKeyInput
-                  openrouterKey={openrouterKey}
-                  onKeySet={setOpenrouterKey}
-                  openrouterModel={openrouterModel}
-                  onModelSet={setOpenrouterModel}
-                  compact={true}
-                />
-
                 <MediaInput onProcess={handleProcess} isProcessing={status === 'processing'} />
 
                 <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-muted text-xs sm:text-sm">
@@ -2562,23 +2566,23 @@ function App() {
       {/* Missing API Key Modal */}
       <Modal
         isOpen={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
+        onClose={handleCloseKeyModal}
         eyebrow="SETUP"
-        title={!geminiOk && !uploadPostKey
+        title={!openrouterOk && !uploadPostKey
           ? 'Required API Keys Missing'
-          : !geminiOk
-            ? 'Gemini API Key Required'
+          : !openrouterOk
+            ? 'OpenRouter API Key & Model Required'
             : 'Upload-Post API Key Required'}
         footer={
           <div className="flex gap-3">
             <button
-              onClick={() => setShowKeyModal(false)}
+              onClick={handleCloseKeyModal}
               className="btn-ghost flex-1 px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
-              onClick={() => { setShowKeyModal(false); goToTab('settings'); }}
+              onClick={() => { handleCloseKeyModal(); goToTab('settings'); }}
               className="btn-primary flex-1 px-4 py-2 text-sm"
             >
               Go to Settings
@@ -2588,36 +2592,16 @@ function App() {
       >
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            OpenShorts needs both a <strong className="text-ink2">Gemini</strong> API key and an <strong className="text-ink2">Upload-Post</strong> API key. Both have free tiers.
+            OpenShorts needs an <strong className="text-ink2">OpenRouter</strong> API key &amp; model and an <strong className="text-ink2">Upload-Post</strong> API key. Both have free tiers.
           </p>
 
-          {/* Gemini block */}
-          <div className={`rounded-input p-4 space-y-2 border ${!apiKey ? 'border-rule2' : 'border-rule opacity-70'}`}>
-            <p className="text-xs font-medium text-ink flex items-center gap-2">
-              {apiKey ? <Check size={12} className="text-ok" /> : <AlertTriangle size={12} className="text-warn" />}
-              Gemini API Key {apiKey && <span className="text-ok">— set</span>}
-            </p>
-            {!apiKey && (
-              <>
-                <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
-                  <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-brass underline">aistudio.google.com/app/apikey</a></li>
-                  <li>Sign in with your Google account</li>
-                  <li>Click "Create API Key"</li>
-                  <li>Copy the key and paste it below</li>
-                </ol>
-                <input
-                  type="text"
-                  placeholder="Paste your Gemini API key here..."
-                  className="input-field"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.target.value.trim()) {
-                      setApiKey(e.target.value.trim());
-                    }
-                  }}
-                />
-              </>
-            )}
-          </div>
+          <OpenRouterKeyInput
+            openrouterKey={openrouterKey}
+            onKeySet={setOpenrouterKey}
+            openrouterModel={openrouterModel}
+            onModelSet={setOpenrouterModel}
+            compact={true}
+          />
 
           {/* Upload-Post block */}
           <div className={`rounded-input p-4 space-y-2 border ${!uploadPostKey ? 'border-rule2' : 'border-rule opacity-70'}`}>
