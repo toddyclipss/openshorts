@@ -34,7 +34,8 @@ output/
 .cache/
 .config/
 # Multi-agent Skills
-.agents/
+.agents/*
+!.agents/rules/
 .agent/
 .claude/
 # skills/ holds third-party installs (symlinks); our own published skill is versioned
@@ -47,7 +48,7 @@ skills-lock.json
 .env.cloud.example
 .worktrees
 
-# Instrucciones locales con datos de infra (repo público)
+# Local instructions with infra details (public repo)
 CLAUDE.local.md
 
 # Rust build output
